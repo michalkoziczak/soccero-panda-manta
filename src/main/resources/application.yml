@@ -1,0 +1,7 @@
+management.security.enabled: false
+slack:
+  token: change-me
+
+logging:
+  level:
+    com.leanforge: DEBUG

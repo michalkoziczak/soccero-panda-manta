@@ -1,0 +1,134 @@
+plugins {
+    id "com.bmuschko.docker-java-application" version "3.2.4"
+}
+
+group 'mrdunski'
+version project.hasProperty('v') ? project.ext.v : 'SNAPSHOT'
+
+apply plugin: 'groovy'
+apply plugin: 'java'
+apply plugin: 'application'
+apply plugin: "com.bmuschko.docker-java-application"
+
+mainClassName = 'com.leanforge.soccero.SocceroSpringApplication'
+applicationDefaultJvmArgs = ["-Xmx256m"]
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+docker {
+    javaApplication {
+        baseImage = 'openjdk:8-jre-alpine'
+        maintainer = 'Patryk Dunski "d@kende.pl"'
+        ports = [8080]
+    }
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
+    maven {
+        url 'http://artifactory.dev.kende.pl/artifactory/libs-release'
+    }
+}
+
+dependencies {
+    compile 'org.springframework.boot:spring-boot-starter-actuator:1.+'
+    compile 'org.springframework.boot:spring-boot-starter-web:1.+'
+    compile 'org.springframework.boot:spring-boot-starter-websocket:1.+'
+    compile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:+'
+    compile 'mrdunski:spring-slack:+'
+
+    testCompile "org.codehaus.groovy:groovy-all:2.4.10"
+    testCompile "org.spockframework:spock-core:1.1-groovy-2.4"
+    testCompile "org.spockframework:spock-spring:1.1-groovy-2.4"
+    testCompile group: 'cglib', name: 'cglib-nodep', version: '3.2.5'
+    testCompile "org.springframework.boot:spring-boot-starter-test:1.+"
+}
+
+task('generateK8sFile') {
+    mkdir('build')
+    file("build/deployment.yaml").text = """
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: $rootProject.name
+  labels:
+    app: $rootProject.name
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: $rootProject.name
+  template:
+    metadata:
+      labels:
+        app: $rootProject.name
+    spec:
+      containers:
+      - name: $rootProject.name
+        image: mrdunski/$rootProject.name:${project.version}
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SLACK_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: slacksecret
+              key: slackToken
+        livenessProbe:
+          initialDelaySeconds: 60
+          httpGet:
+            path: /health
+            port: 8080
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: ${rootProject.name}
+spec:
+  selector:
+    app: ${rootProject.name}
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: $rootProject.name
+spec:
+  rules:
+  - host: "${rootProject.name}.dev.kende.pl"
+    http:
+      paths:
+      - backend:
+          serviceName: $rootProject.name
+          servicePort: 8080
+"""
+}
+
+task('dockerTagLatest', type: Exec, dependsOn: 'dockerBuildImage') {
+    executable 'docker'
+    args 'tag', "mrdunski/${rootProject.name}:${project.version}", "mrdunski/$rootProject.name:latest"
+}
+
+task('dockerPushLatest', type: Exec, dependsOn: 'dockerTagLatest') {
+    executable 'docker'
+    args 'push', "mrdunski/$rootProject.name:latest"
+}
+
+task('dockerPushProjectVersion', type: Exec, dependsOn: 'dockerBuildImage') {
+    executable 'docker'
+    args 'push', "mrdunski/$rootProject.name:${project.version}"
+}
