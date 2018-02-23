@@ -60,7 +60,7 @@ class TeamBuilder(val size: Int, val teamExclusions: Set<TeamExclusion>, val pla
 
     private fun findSolution(teams: Set<Set<String>>) : Set<Set<String>> {
         if (players.size % size != 0) {
-            throw BadTeamSizeException("Can't form teams of $size out of ${players.size}")
+            throw BadTeamSizeException("I'm disappointed. I expected you to give me list of players that can be divided by $size. Instead you gave me ${players.size} player(s).")
         }
 
         val numberOfTeams = players.size/size
