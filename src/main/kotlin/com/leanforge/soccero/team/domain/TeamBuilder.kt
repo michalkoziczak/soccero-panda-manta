@@ -111,7 +111,11 @@ class TeamBuilder(val size: Int, val teamExclusions: Set<TeamExclusion>, val pla
             val handled = mutableSetOf<String>()
             val ret = mutableSetOf<Set<String>>()
 
-            for(i in 0..(skipList.size - 1)) {
+            for ((i) in max.withIndex()) {
+                max[i] = -1;
+            }
+
+            for((i) in skipList.withIndex()) {
                 val player = toHandle.first()
                 val possibleTeams = teamsForPlayer(handled, player)
                 max[i] = possibleTeams.size - 1

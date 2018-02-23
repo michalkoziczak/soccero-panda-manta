@@ -1,5 +1,7 @@
 package com.leanforge.soccero.team.domain
 
+import com.leanforge.soccero.team.exception.BadTeamSizeException
+import com.leanforge.soccero.team.exception.TeamConstraintException
 import spock.lang.Specification
 import spock.lang.Timeout
 
@@ -76,7 +78,7 @@ class TeamBuilderTest extends Specification {
     }
 
 
-    def "should should find solution for problem"() {
+    def "should find solution for problem"() {
         given:
         def players = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'p11', 'p12']
         def excludes = [
@@ -102,9 +104,37 @@ class TeamBuilderTest extends Specification {
 
     }
 
+    def "should fail if all players are excluded"() {
+        given:
+        def players = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'p11', 'p12']
+        def excludes = [
+                new TeamExclusion("", players[0..11].toSet(), UUID.randomUUID())
+        ].toSet()
+        def teamSize = 2
+
+        when:
+        new TeamBuilder(teamSize, excludes, players.toSet()).randomTeams()
+
+        then:
+        thrown(TeamConstraintException)
+    }
+
+    def "should fail if all player count is not even"() {
+        given:
+        def players = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'p11']
+        def excludes = [].toSet()
+        def teamSize = 2
+
+        when:
+        new TeamBuilder(teamSize, excludes, players.toSet()).randomTeams()
+
+        then:
+        thrown(BadTeamSizeException)
+    }
+
 
     @Timeout(60)
-    def "should should find solution for problem of many players of 2"() {
+    def "should find solution for problem of many players of 2"() {
         given:
         def players = generatedPlayers(6 * 50)
         def excludes = evenlyDistributed(6, players)
@@ -126,7 +156,7 @@ class TeamBuilderTest extends Specification {
     }
 
     @Timeout(60)
-    def "should should find solution for problem of many players of 3"() {
+    def "should find solution for problem of many players of 3"() {
         given:
         def players = generatedPlayers(6 * 10)
         def excludes = evenlyDistributed(6, players)
@@ -148,7 +178,7 @@ class TeamBuilderTest extends Specification {
     }
 
     @Timeout(60)
-    def "should should find solution for problem of many players of 1"() {
+    def "should find solution for problem of many players of 1"() {
         given:
         def players = generatedPlayers(6 * 10)
         def excludes = evenlyDistributed(6, players)
