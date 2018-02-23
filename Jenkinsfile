@@ -19,9 +19,11 @@ node ('docker') {
 }
 
 node ('kubectl') {
-    stage('deploy') {
-        checkout scm
-        unstash 'deployment.yaml'
-        sh 'kubectl -n leanforge apply -f build/deployment.yaml'
+    stage("deploy") {
+        if(env.BRANCH_NAME == 'master') {
+            checkout scm
+            unstash 'deployment.yaml'
+            sh 'kubectl -n leanforge apply -f build/deployment.yaml'
+        }
     }
 }
