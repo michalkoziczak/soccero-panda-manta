@@ -17,7 +17,7 @@ node ('docker') {
         }
     }
 }
-/*
+
 node ('kubectl') {
     stage('deploy') {
         checkout scm
@@ -25,4 +25,3 @@ node ('kubectl') {
         sh 'kubectl -n leanforge apply -f build/deployment.yaml'
     }
 }
-*/

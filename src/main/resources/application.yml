@@ -5,3 +5,7 @@ slack:
 logging:
   level:
     com.leanforge: DEBUG
+
+spring.data.mongodb:
+  host: mongodb
+  port: 27017

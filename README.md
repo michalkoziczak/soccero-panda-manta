@@ -1,6 +1,7 @@
-# Template
+# Panda-Manta
+System for multi-competiton turnaments
 
-Quickstart for your own slack bot
+Used internally in LeanForge
 
 ## How to start and test project
 
@@ -25,45 +26,25 @@ run command `SLACK_TOKEN="your_access_token" ./gradlew(.bat) run`
 
 #### Local docker image
 *  `./gradlew dockerBuildImage`
-* `docker run -e SLACK_TOKEN=your_access_token mrdunski/{{projectName}}:SNAPSHOT`
+* `docker run -e SLACK_TOKEN=your_access_token mrdunski/soccero-panda-manta:SNAPSHOT`
 
-### Slack controller example
 
-```java
-@Controller // Spring stereotype for controller bean
-@SlackController // Marker for slack event listener
-public class SampleSlackController {
+## Code conventions
 
-  @Autowired
-  SlackService slackService;
-  
-  // listener for message "simple message"
-  @SlackMessageListener("simple message") 
-  public void handleSimpleMessage(
-          // injects channel id
-          @SlackChannelId String channelId) {
-    slackService.sendChannelMessage(channelId, "received simple message");
-  }
+* Use `@org.springframework.stereotype.Repository` for data access
+* Use `@org.springframework.stereotype.Service` for domain logic
+* Use  separate service for code that works on 2 domains
+* Use `@org.springframework.stereotype.Controller` to define entrypoints
+* Test your stuff
 
-  // listener for pattern "print (.+)"
-  @SlackMessageListener("print (.+)")
-  public void echo(
-          @SlackChannelId String channelId,
-          // Inject group 1 from pattern defined in listener
-          @SlackMessageRegexGroup(1) String string) {
-    slackService.sendChannelMessage(channelId, string);
-  }
-  
-  @SlackReactionListener("gold") // listen for gold reaction  
-  public void handleGold(
-          SlackMessage message,
-          @SlackUserId String userId,
-          @SlackChannelId String channelId) {
-    slackService.addReactions(message, "onion");
-    slackService.sendChannelMessage(channelId, "<@" + userId + "> :gold:", "onion");
-  }
-}
-```
 
-## Health endpoint
-Available at: [/health](http://localhost:8080/health)
+## Domains
+
+### Team
+
+Team is group of players that plays together against other teams.
+
+You can find there logic, that matches players together.
+
+### League
+Aggregates together players, teams and competitions

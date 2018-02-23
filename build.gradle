@@ -1,5 +1,6 @@
 plugins {
     id "com.bmuschko.docker-java-application" version "3.2.4"
+    id "org.jetbrains.kotlin.jvm" version "1.2.21"
 }
 
 group 'mrdunski'
@@ -23,6 +24,12 @@ docker {
     }
 }
 
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}
+
 repositories {
     mavenLocal()
     mavenCentral()
@@ -33,11 +40,13 @@ repositories {
 }
 
 dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.2.21"
     compile 'org.springframework.boot:spring-boot-starter-actuator:1.+'
     compile 'org.springframework.boot:spring-boot-starter-web:1.+'
     compile 'org.springframework.boot:spring-boot-starter-websocket:1.+'
+    compile 'org.springframework.boot:spring-boot-starter-data-mongodb:1.+'
     compile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:+'
-    compile 'mrdunski:spring-slack:+'
+    compile 'mrdunski:spring-slack:23'
 
     testCompile "org.codehaus.groovy:groovy-all:2.4.10"
     testCompile "org.spockframework:spock-core:1.1-groovy-2.4"
@@ -79,7 +88,7 @@ spec:
         - name: SLACK_TOKEN
           valueFrom:
             secretKeyRef:
-              name: slacksecret
+              name: panda-manta
               key: slackToken
         livenessProbe:
           initialDelaySeconds: 60
