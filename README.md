@@ -3,6 +3,8 @@ System for multi-competiton turnaments
 
 Used internally in LeanForge
 
+![Panda-Manta](https://github.com/mrdunski/soccero-panda-manta/raw/master/src/main/resources/pandamanta.png)
+
 ## How to start and test project
 
 ### Create slack workspace
