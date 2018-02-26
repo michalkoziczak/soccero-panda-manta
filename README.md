@@ -33,6 +33,7 @@ run command `SLACK_TOKEN="your_access_token" ./gradlew(.bat) run`
 
 ## Code conventions
 
+* SOLID and DRY
 * Use `@org.springframework.stereotype.Repository` for data access
 * Use `@org.springframework.stereotype.Service` for domain logic
 * Use  separate service for code that works on 2 domains
