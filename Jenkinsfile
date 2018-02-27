@@ -2,7 +2,7 @@ node ('docker') {
     stage('test project') {
         checkout scm
         sh 'chmod +x ./gradlew'
-        sh './gradlew clean test'
+        sh './gradlew clean test || true'
         junit healthScaleFactor: 100.0, testResults: '**/test-results/**/*.xml'
      }
 
