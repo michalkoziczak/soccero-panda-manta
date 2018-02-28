@@ -9,6 +9,7 @@ import com.leanforge.soccero.match.exception.MissingPlayerException
 import com.leanforge.soccero.match.exception.WinnersCollisionException
 import com.leanforge.soccero.match.repo.MatchResultRepository
 import com.leanforge.soccero.match.repo.TournamentMatchRepository
+import com.leanforge.soccero.queue.QueueService
 import com.leanforge.soccero.team.domain.LeagueTeam
 import spock.lang.Specification
 import spock.lang.Subject
@@ -21,24 +22,25 @@ class TournamentMatchServiceTest extends Specification {
     TournamentMatchRepository tournamentMatchRepository = Mock()
     MatchResultRepository matchResultRepository = Mock()
     SlackService slackService = Mock()
+    QueueService queueService = Mock()
 
 
     @Subject
-    TournamentMatchService tournamentMatchService = new TournamentMatchService(tournamentMatchRepository, matchResultRepository, slackService)
+    TournamentMatchService tournamentMatchService = new TournamentMatchService(tournamentMatchRepository, matchResultRepository, queueService, slackService)
 
 
     def "should create match"() {
         given:
-        def league = new League("l1")
+        def channel = 'a1'
         def competition = new Competition("c1", 2)
         def teamA = new LeagueTeam(['p1', 'p2'].toSet())
         def teamB = new LeagueTeam(['p3', 'p4'].toSet())
-        def channel = 'a1'
+        def league = new League(name: "l1", slackChannelId: channel, competitions: [competition].toSet())
         slackService.getRealNameById(_) >> {it[0]}
 
 
         when:
-        tournamentMatchService.createMatch(channel, league, competition, teamA, teamB)
+        tournamentMatchService.createMatch(league, competition, teamA, teamB)
 
         then:
         1 * tournamentMatchRepository.save(_) >> {
@@ -51,11 +53,7 @@ class TournamentMatchServiceTest extends Specification {
             assert tm.uuid != null
         }
         1 * slackService.sendChannelMessage(channel, _, 'trophy') >> new SlackMessage('abc', channel, '')
-        1 * slackService.sendChannelMessage(channel, _) >> {
-            String message = it[1]
-            assert message.matches(/startGame p4 `.*`/)
-            new SlackMessage('abc', channel, '')
-        }
+        1 * queueService.triggerGameScheduler(competition, [teamA, teamB].toSet())
     }
 
     def "should register result"() {

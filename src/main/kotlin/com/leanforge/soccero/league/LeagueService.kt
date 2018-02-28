@@ -10,6 +10,7 @@ import com.leanforge.soccero.league.repo.LeagueRepository
 import com.leanforge.soccero.team.TeamServiceInterface
 import com.leanforge.soccero.team.domain.LeagueTeam
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import java.util.*
 import java.util.stream.Collectors
@@ -53,6 +54,15 @@ open class LeagueService @Autowired constructor(
             findPlayer(league.name, playerSlackId).ifPresent { leaguePlayerRepository.delete(it) }
             updateMessage(league)
         }
+    }
+
+    fun findStartedLeagueByName(name: String) : League? {
+        val league = leagueRepository.findOne(name)
+        if (league.state != League.LeagueState.STARTED) {
+            return null
+        }
+
+        return league
     }
 
     private fun findPendingLeagueBySlackMessage(message: SlackMessage) : Optional<League> {
@@ -134,5 +144,17 @@ open class LeagueService @Autowired constructor(
 
     private fun teamSizes(league: League) : Set<Int> {
         return league.competitions.map({ it.players }).toSet()
+    }
+
+    fun listLeagues(): String {
+        return "Leagues:\n" + leagueRepository
+                .findAll(Sort(Sort.Direction.DESC, "createdOn"))
+                .map { ":${it.state.icon}: `${it.name}`" }
+                .joinToString("\n") +
+
+                "\n\nStatuses: \n" + League.LeagueState.values()
+                .map { ":${it.icon}: - ${it.name}" }
+                .joinToString("\n")
+
     }
 }

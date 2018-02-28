@@ -20,7 +20,7 @@ data class League constructor(@Id var name : String = UUID.randomUUID().toString
         return SlackMessage(slackMessageId, slackChannelId, null)
     }
 
-    enum class LeagueState {
-        PENDING, STARTED, FINISHED
+    enum class LeagueState(val icon: String) {
+        PENDING("new"), STARTED("arrow_forward"), FINISHED("checkered_flag");
     }
 }

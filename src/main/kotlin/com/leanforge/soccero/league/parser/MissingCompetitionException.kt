@@ -5,5 +5,5 @@ import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 
-@ResponseStatus(code = HttpStatus.BAD_REQUEST)
-class CompetitionParsingException(definition: String) : IllegalArgumentException("I'm disappointed. You failed to provide a valid competition. `$definition` is invalid.")
+@ResponseStatus(code = HttpStatus.BAD_REQUEST, reason = "I'm disappointed. You failed to provide proper competition. Reflect on your actions.")
+class MissingCompetitionException() : IllegalArgumentException()

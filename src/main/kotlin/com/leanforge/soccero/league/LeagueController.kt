@@ -10,14 +10,14 @@ import org.springframework.stereotype.Controller
 import java.util.regex.Pattern
 
 @SlackController
-open class LeagueController @Autowired constructor(val slackService: SlackService, val leagueService: LeagueService, val competitionParser: CompetitionParser) {
+open class LeagueController @Autowired constructor(val slackService: SlackService, val leagueService: LeagueService) {
 
     @SlackMessageListener("newLeague\\s+'([^']+)'\\s+(.*)")
     fun createLeague(
             slackMessage: SlackMessage,
             @SlackMessageRegexGroup(1) name: String,
             @SlackMessageRegexGroup(2) competitions: String) {
-        val definitions = competitionParser.parseDefinition(competitions)
+        val definitions = CompetitionParser.parseDefinition(competitions)
         leagueService.createLeague(slackMessage, name, definitions)
     }
 
@@ -27,6 +27,11 @@ open class LeagueController @Autowired constructor(val slackService: SlackServic
         leagueService.startLeague(name)
         slackService.addReactions(slackMessage, "ok_hand")
 
+    }
+
+    @SlackMessageListener(value = "listLeagues", sendTyping = true)
+    fun listLeagues() : String {
+        return leagueService.listLeagues()
     }
 
     @SlackThreadMessageListener("startLeague")

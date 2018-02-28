@@ -4,8 +4,7 @@ import com.leanforge.soccero.league.domain.Competition
 import org.springframework.stereotype.Component
 import java.util.regex.Pattern
 
-@Component
-class CompetitionParser {
+object CompetitionParser {
 
     val definitionPattern: Pattern = Pattern.compile("(\\w[\\w\\d_-]*):(\\d)vs(\\d)")
     val separatorPattern: Pattern = Pattern.compile("\\s+")
@@ -15,6 +14,16 @@ class CompetitionParser {
                 .filter { !it.isBlank() }
                 .map { toCompetition(it) }
                 .toSet()
+    }
+
+    fun parseSingleDefinition(definition: String) : Competition {
+        val competitions = parseDefinition(definition)
+
+        if (competitions.size != 1) {
+            throw CompetitionParsingException(definition)
+        }
+
+        return competitions.single()
     }
 
     private fun toCompetition(competitionString: String) : Competition {
