@@ -1,9 +1,11 @@
 package com.leanforge.soccero.tournament.domain
 
 import com.leanforge.soccero.league.domain.Competition
-import com.leanforge.soccero.match.MatchResult
+import com.leanforge.soccero.match.domain.MatchResult
 import com.leanforge.soccero.team.domain.LeagueTeam
 import spock.lang.Specification
+
+import java.time.Instant
 
 class TournamentTest extends Specification {
 
@@ -32,10 +34,11 @@ class TournamentTest extends Specification {
         when:
         def ret2 = tournament.nextRound([
                 new MatchResult("test1", compA,
-                        [new LeagueTeam(['p1', 'p2'].toSet()),
-                         new LeagueTeam(['p3', 'p4'].toSet())].toSet(),
+                        new LeagueTeam(['p3', 'p4'].toSet()),
                         new LeagueTeam(['p1', 'p2'].toSet()),
-                        UUID.randomUUID())].toList(), tournament.competitors())
+                        UUID.randomUUID(),
+                        UUID.randomUUID(),
+                        Instant.now())].toList(), tournament.competitors())
         then:
         ret2.losers == [new LeagueTeam(['p3', 'p4'].toSet())]
         ret2.competitors()[0] ==
@@ -66,37 +69,22 @@ class TournamentTest extends Specification {
                 [].toList(),
                 UUID.randomUUID())
 
+        def results = [
+                // result -> Winner vs Loser
+                result(['p1', 'p2'], ['p3', 'p4']),
+                result(['p5', 'p6'], ['p7', 'p8']),
+                result(['p5', 'p6'], ['p1', 'p2']),
+                result(['p9', 'p10'], ['p3', 'p4']),
+                result(['p5', 'p6'], ['p9', 'p10']),
+                result(['p7', 'p8'], ['p1', 'p2']),
+                result(['p7', 'p8'], ['p9', 'p10']),
+                result(['p7', 'p8'], ['p5', 'p6']),
+                result(['p7', 'p8'], ['p5', 'p6'])
+        ]
+
 
         when:
-        def ret2 = tournament.currentState([
-                new MatchResult("test1", compA, [new LeagueTeam(['p1', 'p2'].toSet()), new LeagueTeam(['p3', 'p4'].toSet())].toSet(),
-                        new LeagueTeam(['p1', 'p2'].toSet()),
-                        UUID.randomUUID()),
-                new MatchResult("test1", compA, [new LeagueTeam(['p5', 'p6'].toSet()), new LeagueTeam(['p7', 'p8'].toSet())].toSet(),
-                        new LeagueTeam(['p5', 'p6'].toSet()),
-                        UUID.randomUUID()),
-                new MatchResult("test1", compA, [new LeagueTeam(['p1', 'p2'].toSet()), new LeagueTeam(['p5', 'p6'].toSet())].toSet(),
-                        new LeagueTeam(['p5', 'p6'].toSet()),
-                        UUID.randomUUID()),
-                new MatchResult("test1", compA, [new LeagueTeam(['p9', 'p10'].toSet()), new LeagueTeam(['p3', 'p4'].toSet())].toSet(),
-                        new LeagueTeam(['p9', 'p10'].toSet()),
-                        UUID.randomUUID()),
-                new MatchResult("test1", compA, [new LeagueTeam(['p5', 'p6'].toSet()), new LeagueTeam(['p9', 'p10'].toSet())].toSet(),
-                        new LeagueTeam(['p5', 'p6'].toSet()),
-                        UUID.randomUUID()),
-                new MatchResult("test1", compA, [new LeagueTeam(['p1', 'p2'].toSet()), new LeagueTeam(['p7', 'p8'].toSet())].toSet(),
-                        new LeagueTeam(['p7', 'p8'].toSet()),
-                        UUID.randomUUID()),
-                new MatchResult("test1", compA, [new LeagueTeam(['p7', 'p8'].toSet()), new LeagueTeam(['p9', 'p10'].toSet())].toSet(),
-                        new LeagueTeam(['p7', 'p8'].toSet()),
-                        UUID.randomUUID()),
-                new MatchResult("test1", compA, [new LeagueTeam(['p5', 'p6'].toSet()), new LeagueTeam(['p7', 'p8'].toSet())].toSet(),
-                        new LeagueTeam(['p7', 'p8'].toSet()),
-                        UUID.randomUUID()),
-                new MatchResult("test1", compA, [new LeagueTeam(['p5', 'p6'].toSet()), new LeagueTeam(['p7', 'p8'].toSet())].toSet(),
-                        new LeagueTeam(['p7', 'p8'].toSet()),
-                        UUID.randomUUID()),
-                ].toList())
+        def ret2 = tournament.currentState(results)
         then:
         ret2.losers == [new LeagueTeam(['p7', 'p8'].toSet())]
 
@@ -104,4 +92,11 @@ class TournamentTest extends Specification {
 
 
 
+    MatchResult result(List<String> winners, List<String> losers) {
+        new MatchResult("test1", new Competition("compA", 2), new LeagueTeam(losers.toSet()),
+                new LeagueTeam(winners.toSet()),
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                Instant.now())
+    }
 }

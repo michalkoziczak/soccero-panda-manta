@@ -2,7 +2,7 @@ package com.leanforge.soccero.tournament
 
 import com.leanforge.soccero.league.domain.Competition
 import com.leanforge.soccero.league.domain.League
-import com.leanforge.soccero.match.MatchResult
+import com.leanforge.soccero.match.domain.MatchResult
 import com.leanforge.soccero.team.domain.LeagueTeam
 import com.leanforge.soccero.tournament.domain.Tournament
 import com.leanforge.soccero.tournament.exception.TournamentAlreadyExistsException
@@ -73,15 +73,14 @@ class TournamentServiceTest extends Specification {
                 ].toSet()
         )
 
-        tournamentRepository.findAllByName(_) >> { Stream.of(new Tournament('test', compA, [], [], 0, UUID.randomUUID())) }
+        tournamentRepository.findAllByName(_) >> { Stream.of(new Tournament('test', compA, [], [], UUID.randomUUID())) }
 
         when:
         tournamentService.createTournaments(league)
 
         then:
         0 * tournamentRepository.save(_ as Iterable<Tournament>)
-        //TODO fix exception ?
-        thrown(GroovyRuntimeException)
+        thrown(TournamentAlreadyExistsException)
     }
 
     def "should handle variable team size"() {

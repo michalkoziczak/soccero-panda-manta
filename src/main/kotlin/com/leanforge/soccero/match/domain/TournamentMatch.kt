@@ -1,20 +1,16 @@
-package com.leanforge.soccero.match
-
+package com.leanforge.soccero.match.domain
 
 import com.leanforge.soccero.league.domain.Competition
 import com.leanforge.soccero.team.domain.LeagueTeam
+import org.springframework.data.annotation.Id
 import java.util.*
 
-data class MatchResult(
+data class TournamentMatch(
         val leagueName: String,
         val competition: Competition,
         val competitors: Set<LeagueTeam>,
-        val winner: LeagueTeam,
-        val uuid: UUID = UUID.randomUUID()) {
-
-    fun looser() : LeagueTeam {
-        return competitors.minus(winner).first()
-    }
-
-
+        val slackChannelId: String,
+        val slackMessageId: String,
+        @Id val uuid : UUID = UUID.randomUUID()
+) {
 }

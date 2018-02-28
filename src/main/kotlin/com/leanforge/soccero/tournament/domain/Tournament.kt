@@ -1,9 +1,9 @@
 package com.leanforge.soccero.tournament.domain
 
 import com.leanforge.soccero.league.domain.Competition
+import com.leanforge.soccero.match.domain.MatchResult
 import com.leanforge.soccero.team.domain.LeagueTeam
 import org.springframework.data.annotation.Id
-import com.leanforge.soccero.match.MatchResult
 import java.util.*
 
 data class Tournament(
@@ -25,13 +25,13 @@ data class Tournament(
         val actualLosers : MutableList<LeagueTeam> = losers.toMutableList()
 
         competitors.forEach { battle ->
-            val battleResult : MatchResult? = results.filter { result -> result.competitors == battle }.firstOrNull()
+            val battleResult = results.filter { result -> result.hasTeams(battle) }.firstOrNull()
             if (battleResult != null) {
-                if (actualLosers.contains(battleResult.looser())) {
-                    actualLosers.remove(battleResult.looser())
+                if (actualLosers.contains(battleResult.loser)) {
+                    actualLosers.remove(battleResult.loser)
                 } else {
-                    actualLosers.add(battleResult.looser())
-                    actualWinners.remove(battleResult.looser())
+                    actualLosers.add(battleResult.loser)
+                    actualWinners.remove(battleResult.loser)
                 }
             }
         }
@@ -53,6 +53,6 @@ data class Tournament(
     }
 
     private fun countLoses(team : LeagueTeam, results : List<MatchResult>) : Int {
-        return results.count { it.looser() == team }
+        return results.count { it.loser == team }
     }
 }

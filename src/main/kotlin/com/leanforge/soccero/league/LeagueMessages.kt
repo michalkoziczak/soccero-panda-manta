@@ -48,7 +48,7 @@ open class LeagueMessages @Autowired constructor(val slackService: SlackService)
 
     private fun competitionToMessage(players: Set<Competition>) : String {
         return players
-                .map { "> :trophy: ${it.name} ${it.players}vs${it.players}" }
+                .map { "> :trophy: ${it.label()}" }
                 .joinToString("\n")
     }
 
