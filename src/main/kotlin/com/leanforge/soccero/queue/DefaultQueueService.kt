@@ -15,7 +15,7 @@ class DefaultQueueService @Autowired constructor(
         private val queueConfigRepository: QueueConfigRepository) : QueueService {
     override fun listConfig(): String {
         return "Defined queues:\n" + queueConfigRepository.findAll()
-                .map { ":gear: ${it.competition.label()} -> <#${it.slackChannelId}> _(p${it.priority})_" }
+                .map { ":gear: ${it.competition.label()} -> <#${it.slackChannelId}|${slackService.getChannelName(it.slackChannelId)}> _(p${it.priority})_" }
                 .joinToString("\n")
     }
 
