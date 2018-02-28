@@ -73,15 +73,14 @@ class TournamentServiceTest extends Specification {
                 ].toSet()
         )
 
-        tournamentRepository.findAllByName(_) >> { Stream.of(new Tournament('test', compA, [], [], 0, UUID.randomUUID())) }
+        tournamentRepository.findAllByName(_) >> { Stream.of(new Tournament('test', compA, [], [], UUID.randomUUID())) }
 
         when:
         tournamentService.createTournaments(league)
 
         then:
         0 * tournamentRepository.save(_ as Iterable<Tournament>)
-        //TODO fix exception ?
-        thrown(GroovyRuntimeException)
+        thrown(TournamentAlreadyExistsException)
     }
 
     def "should handle variable team size"() {
