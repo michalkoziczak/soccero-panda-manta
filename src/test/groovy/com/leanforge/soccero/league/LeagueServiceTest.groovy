@@ -54,7 +54,6 @@ class LeagueServiceTest extends Specification {
 
         then:
         0 * leagueRepository.save(_)
-        1 * slackService.sendChannelMessage(channel, _)
         0 * leaguePlayerRepository.save(_)
         thrown(IllegalArgumentException)
     }
