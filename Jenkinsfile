@@ -2,9 +2,10 @@ node ('docker') {
     stage('test project') {
         checkout scm
         sh 'chmod +x ./gradlew'
-        currentBuild.result = sh (script: './gradlew clean test', returnStatus: true)
+        def result = sh (script: './gradlew clean test', returnStatus: true)
         step([$class: 'JUnitResultArchiver', healthScaleFactor: 1000.0,
                      testResults: '**/test-results/**/*.xml'])
+        currentBuild.result = result
      }
 
     stage('build docker') {
