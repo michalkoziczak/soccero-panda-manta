@@ -8,6 +8,6 @@ data class Competition(
 ) : Serializable {
 
     fun label() : String {
-        return "$name ${players}vs${players}"
+        return "$name:${players}vs${players}"
     }
 }

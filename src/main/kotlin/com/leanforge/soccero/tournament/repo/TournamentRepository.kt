@@ -1,5 +1,6 @@
 package com.leanforge.soccero.tournament.repo
 
+import com.leanforge.soccero.league.domain.Competition
 import com.leanforge.soccero.tournament.domain.Tournament
 import org.springframework.data.mongodb.repository.MongoRepository
 import org.springframework.stereotype.Repository
@@ -10,4 +11,5 @@ import java.util.stream.Stream
 interface TournamentRepository : MongoRepository<Tournament, UUID> {
 
     fun findAllByName(name: String) : Stream<Tournament>
+    fun findOneByNameAndCompetition(name: String, competition: Competition) : Tournament?
 }

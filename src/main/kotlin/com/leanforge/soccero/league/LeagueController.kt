@@ -6,8 +6,6 @@ import com.leanforge.game.slack.listener.*
 import com.leanforge.soccero.IdsExctractor
 import com.leanforge.soccero.league.parser.CompetitionParser
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Controller
-import java.util.regex.Pattern
 
 @SlackController
 open class LeagueController @Autowired constructor(val slackService: SlackService, val leagueService: LeagueService) {
@@ -29,6 +27,13 @@ open class LeagueController @Autowired constructor(val slackService: SlackServic
 
     }
 
+    @SlackMessageListener(value = "endLeague '([^']+)'", sendTyping = true)
+    fun endLeague(@SlackMessageRegexGroup(1) name: String, slackMessage: SlackMessage) {
+        leagueService.endLeague(name)
+        slackService.addReactions(slackMessage, "ok_hand")
+
+    }
+
     @SlackMessageListener(value = "listLeagues", sendTyping = true)
     fun listLeagues() : String {
         return leagueService.listLeagues()
@@ -36,7 +41,7 @@ open class LeagueController @Autowired constructor(val slackService: SlackServic
 
     @SlackThreadMessageListener("startLeague")
     fun startThisLeague(@SlackChannelId channel: String, @SlackThreadId thread: String, slackMessage: SlackMessage) {
-        leagueService.getNameForThreadId(channel, thread).ifPresent {
+        leagueService.getPendingLeagueNameForThreadId(channel, thread).ifPresent {
             slackService.addReactions(slackMessage, "coffee")
 
             leagueService.startLeague(it)
@@ -52,7 +57,7 @@ open class LeagueController @Autowired constructor(val slackService: SlackServic
 
     @SlackThreadMessageListener("add (.*)")
     fun addPlayerToThisLeague(@SlackMessageRegexGroup(1) userIds: String, @SlackThreadId thread: String, @SlackChannelId channel: String) {
-        leagueService.getNameForThreadId(channel, thread).ifPresent { name ->
+        leagueService.getPendingLeagueNameForThreadId(channel, thread).ifPresent { name ->
             IdsExctractor.extractIds(userIds).forEach { id -> leagueService.addPlayerAndUpdateStatusMessage(name, id)}
         }
     }

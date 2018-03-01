@@ -24,6 +24,8 @@ class HelpController {
                         ":pushpin: `listResults '{leagueName}' competition:XvsX` prints results of given competition in league\n" +
                         ":pushpin: `defineQueue competition:XvsX #channelname p4` defines queue. Bot will use `startGame` command on this channel to schedule tournament game\n" +
                         ":pushpin: `removeQueue competition:XvsX` removes queue definition\n" +
-                        ":pushpin: `listQueues` list defined queues (competition-channel bindings)\n"
+                        ":pushpin: `listQueues` list defined queues (competition-channel bindings)\n" +
+                        ":pushpin: `tournamentState` prints pending matches for started league\n" +
+                        ":pushpin: `tournamentState '{leagueName}'` prints pending matches for given league\n"
     }
 }

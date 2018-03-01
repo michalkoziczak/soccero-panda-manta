@@ -6,8 +6,6 @@ import com.leanforge.game.slack.listener.*
 import com.leanforge.soccero.IdsExctractor
 import com.leanforge.soccero.league.LeagueService
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Controller
-import java.util.regex.Pattern
 
 @SlackController
 class TeamController @Autowired constructor(val teamService: TeamServiceInterface, val slackService: SlackService, val leagueService: LeagueService) {
@@ -27,7 +25,7 @@ class TeamController @Autowired constructor(val teamService: TeamServiceInterfac
             @SlackThreadId thread: String,
             @SlackMessageRegexGroup(1) slackIds: String,
             slackMessage: SlackMessage) : SlackReactionResponse? {
-        return leagueService.getNameForThreadId(channel, thread).map {
+        return leagueService.getPendingLeagueNameForThreadId(channel, thread).map {
             teamService.addExclusion(it, IdsExctractor.extractIds(slackIds).toSet())
             leagueService.updateMessage(it)
             SlackReactionResponse("ok_hand")

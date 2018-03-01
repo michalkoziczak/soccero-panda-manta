@@ -65,9 +65,24 @@ open class LeagueService @Autowired constructor(
         return league
     }
 
+    fun findOnlyStartedLeague() : League? {
+        return leagueRepository.findAll()
+                .filter { it.state == League.LeagueState.STARTED }
+                .singleOrNull()
+    }
+
+    fun findLeagueByThreadAndState(channelId: String, threadId: String, state: League.LeagueState) : League? {
+        val league = leagueRepository.findOneBySlackMessageIdAndSlackChannelId(threadId, channelId) ?: return null
+
+        if (league.state != state) {
+            return null
+        }
+
+        return league
+    }
+
     private fun findPendingLeagueBySlackMessage(message: SlackMessage) : Optional<League> {
-        return Optional.ofNullable(leagueRepository.findOneBySlackMessageIdAndSlackChannelId(message.timestamp, message.channelId))
-                .filter({ it.state == League.LeagueState.PENDING })
+        return Optional.ofNullable(findLeagueByThreadAndState(message.channelId, message.timestamp, League.LeagueState.PENDING))
     }
 
     private fun findPendingLeagueByName(name: String) : Optional<League> {
@@ -111,8 +126,7 @@ open class LeagueService @Autowired constructor(
 
     private fun requireLeagueNotPresent(channelId: String, name: String) {
         if (leagueRepository.findOne(name) != null) {
-            slackService.sendChannelMessage(channelId, leagueMessages.leagueConflict(name))
-            throw IllegalArgumentException()
+            throw IllegalArgumentException(leagueMessages.leagueConflict(name))
         }
     }
 
@@ -126,7 +140,7 @@ open class LeagueService @Autowired constructor(
         }
     }
 
-    fun getNameForThreadId(channelId: String, threadId: String) : Optional<String> {
+    fun getPendingLeagueNameForThreadId(channelId: String, threadId: String) : Optional<String> {
         return findPendingLeagueBySlackMessage(SlackMessage(threadId, channelId, null)).map { it.name }
     }
 
@@ -156,5 +170,11 @@ open class LeagueService @Autowired constructor(
                 .map { ":${it.icon}: - ${it.name}" }
                 .joinToString("\n")
 
+    }
+
+    fun endLeague(name: String) {
+        val league = findStartedLeagueByName(name) ?: return
+        league.state = League.LeagueState.FINISHED
+        leagueRepository.save(league)
     }
 }

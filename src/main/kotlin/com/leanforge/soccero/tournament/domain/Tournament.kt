@@ -15,7 +15,7 @@ data class Tournament(
 
 
     fun competitors() : List<Set<LeagueTeam>> {
-        return (winners + losers).windowed(2, 2, true)
+        return (winners + losers).windowed(2, 2, false)
                 .map { it.toSet() }
                 .toList()
     }
@@ -47,6 +47,11 @@ data class Tournament(
         return Tournament(name, competition, newWinners, newLosers, uuid)
     }
 
+    fun hasAllResults(results: List<MatchResult>) : Boolean {
+        return competitors()
+                .all { c -> results.any { r -> r.hasTeams(c) } }
+    }
+
     private fun filterByLoses(looses: Int, teams : List<LeagueTeam>, results : List<MatchResult>) : List<LeagueTeam> {
         return teams.filter { w -> countLoses(w, results) == looses }
                 .toList()
@@ -54,5 +59,11 @@ data class Tournament(
 
     private fun countLoses(team : LeagueTeam, results : List<MatchResult>) : Int {
         return results.count { it.loser == team }
+    }
+
+    fun filterCurrentResults(results: List<MatchResult>) : List<MatchResult> {
+        return competitors()
+                .map { c -> results.first { r -> r.hasTeams(c) } }
+                .toList()
     }
 }
