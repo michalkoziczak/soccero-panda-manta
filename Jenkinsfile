@@ -3,7 +3,7 @@ node ('docker') {
         checkout scm
         sh 'chmod +x ./gradlew'
         sh (script: './gradlew clean test', returnStatus: true)
-        step([$class: 'JUnitResultArchiver',
+        step([$class: 'JUnitResultArchiver', healthScaleFactor: 1000.0,
                      testResults: '**/test-results/**/*.xml'])
      }
 
