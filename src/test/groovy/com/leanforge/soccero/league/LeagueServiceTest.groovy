@@ -38,7 +38,6 @@ class LeagueServiceTest extends Specification {
         then:
         1 * leagueRepository.save(_)
         1 * slackService.sendChannelMessage(channel, _) >> new SlackMessage('abc123', channel, 'me')
-        1 * leaguePlayerRepository.save(new LeaguePlayer(leagueName, user))
     }
 
     def "should not create league if already exists"() {
