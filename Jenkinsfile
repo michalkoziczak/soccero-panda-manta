@@ -5,7 +5,7 @@ node ('docker') {
         def result = sh (script: './gradlew clean test', returnStatus: true)
         step([$class: 'JUnitResultArchiver', healthScaleFactor: 1000.0,
                      testResults: '**/test-results/**/*.xml'])
-        currentBuild.result = result
+        sh "exit $result"
      }
 
     stage('build docker') {
