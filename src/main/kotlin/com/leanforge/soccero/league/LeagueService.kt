@@ -24,15 +24,14 @@ open class LeagueService @Autowired constructor(
         private val teamService: TeamServiceInterface) {
 
     fun createLeague(initMessage: SlackMessage, name: String, competitions: Set<Competition>) {
-        requireLeagueNotPresent(initMessage.channelId, name)
-        val startMessage = slackService.sendChannelMessage(initMessage.channelId, leagueMessages.pendingMessage(name, setOf(LeaguePlayer(name, initMessage.senderId)), competitions, emptyList()))
+        requireLeagueNotPresent(name)
+        val startMessage = slackService.sendChannelMessage(initMessage.channelId, leagueMessages.pendingMessage(name, emptySet(), competitions, emptyList()))
         val league = League(name)
         league.slackChannelId = startMessage.channelId
         league.slackMessageId = startMessage.timestamp
         league.competitions = competitions
         leagueRepository.save(league)
         slackService.addReactions(startMessage, "heavy_plus_sign")
-        addPlayer(name, initMessage.senderId)
     }
 
     fun addPlayerAndUpdateStatusMessage(message: SlackMessage, playerSlackId: String) {
@@ -81,6 +80,24 @@ open class LeagueService @Autowired constructor(
         return league
     }
 
+    fun pauseLeague(name: String) : League? {
+        val league = leagueRepository.findOne(name) ?: return null
+        if (league.state != League.LeagueState.STARTED) {
+            return null
+        }
+        league.state = League.LeagueState.PAUSED
+        return leagueRepository.save(league)
+    }
+
+    fun resumeLeague(name: String) : League? {
+        val league = leagueRepository.findOne(name) ?: return null
+        if (league.state != League.LeagueState.PAUSED) {
+            return null
+        }
+        league.state = League.LeagueState.STARTED
+        return leagueRepository.save(league)
+    }
+
     private fun findPendingLeagueBySlackMessage(message: SlackMessage) : Optional<League> {
         return Optional.ofNullable(findLeagueByThreadAndState(message.channelId, message.timestamp, League.LeagueState.PENDING))
     }
@@ -124,7 +141,7 @@ open class LeagueService @Autowired constructor(
         return leagueMessages.startedMessage(league.name, league.competitions, league.teams)
     }
 
-    private fun requireLeagueNotPresent(channelId: String, name: String) {
+    private fun requireLeagueNotPresent(name: String) {
         if (leagueRepository.findOne(name) != null) {
             throw IllegalArgumentException(leagueMessages.leagueConflict(name))
         }

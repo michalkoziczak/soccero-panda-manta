@@ -34,6 +34,20 @@ open class LeagueController @Autowired constructor(val slackService: SlackServic
 
     }
 
+    @SlackMessageListener(value = "pauseLeague '([^']+)'", sendTyping = true)
+    fun pauseLeague(@SlackMessageRegexGroup(1) name: String) : SlackReactionResponse {
+        leagueService.pauseLeague(name) ?: return SlackReactionResponse("confused")
+
+        return SlackReactionResponse("ok_hand")
+    }
+
+    @SlackMessageListener(value = "resumeLeague '([^']+)'", sendTyping = true)
+    fun resumeLeague(@SlackMessageRegexGroup(1) name: String) : SlackReactionResponse {
+        leagueService.resumeLeague(name) ?: return SlackReactionResponse("confused")
+
+        return SlackReactionResponse("ok_hand")
+    }
+
     @SlackMessageListener(value = "listLeagues", sendTyping = true)
     fun listLeagues() : String {
         return leagueService.listLeagues()

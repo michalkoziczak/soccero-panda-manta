@@ -16,8 +16,10 @@ class HelpController {
                         ":pushpin: `help` - prints help message.\n" +
                         ":pushpin: `newLeague 'League Name' competition_1:1vs1 competition_2:2vs2` - creates league with competition_1 (1 player versus 1 player) and competition_2 (2 players vs 2 players)\n" +
                         ":pushpin: :heavy_plus_sign: - Add/Remove yourself from competition\n" +
-                        ":pushpin: `startLeague 'League Name'` - Randomize teams and start league!\n" +
+                        ":pushpin: `startLeague '{leagueName}'` - Randomize teams and start league!\n" +
                         ":pushpin: `startLeague` in league thread - Randomize teams and start league!\n" +
+                        ":pushpin: `pauseLeague '{leagueName}'` - puts league on hold\n" +
+                        ":pushpin: `resumeLeague '{leagueName}'` - resumes league\n" +
                         ":pushpin: `listLeagues` prints all existing leagues\n" +
                         ":pushpin: `exclude @player1 @player2 @player3 ...` in league thread - Adds exclusion group - players that can't be in the same team\n" +
                         ":pushpin: `createMatch '{leagueName}' competition:XvsX @player1 @player2 @player3 ...` creates (starts new) tournament match\n" +

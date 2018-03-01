@@ -21,6 +21,6 @@ data class League constructor(@Id var name : String = UUID.randomUUID().toString
     }
 
     enum class LeagueState(val icon: String) {
-        PENDING("new"), STARTED("arrow_forward"), FINISHED("checkered_flag");
+        PENDING("new"), STARTED("arrow_forward"), PAUSED("double_vertical_bar"), FINISHED("checkered_flag");
     }
 }
