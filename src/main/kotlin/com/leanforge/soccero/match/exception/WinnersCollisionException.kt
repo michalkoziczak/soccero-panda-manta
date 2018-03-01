@@ -3,7 +3,7 @@ package com.leanforge.soccero.match.exception
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ResponseStatus
 
-@ResponseStatus(code = HttpStatus.BAD_REQUEST)
+@ResponseStatus(code = HttpStatus.CONFLICT)
 class WinnersCollisionException(slackId: String) :
         IllegalStateException("<@$slackId>, you caused collision. Please reflect on it and propose changes in " +
                 "your's part of the process to prevent such cases in the future. " +

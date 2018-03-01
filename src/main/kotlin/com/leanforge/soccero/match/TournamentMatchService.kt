@@ -8,14 +8,18 @@ import com.leanforge.soccero.league.parser.MissingCompetitionException
 import com.leanforge.soccero.match.domain.MatchResult
 import com.leanforge.soccero.match.domain.TournamentMatch
 import com.leanforge.soccero.match.exception.AmbiguousPlayerToTeamMappingException
+import com.leanforge.soccero.match.exception.FrozenResultException
 import com.leanforge.soccero.match.exception.MissingPlayerException
 import com.leanforge.soccero.match.exception.WinnersCollisionException
 import com.leanforge.soccero.match.repo.MatchResultRepository
 import com.leanforge.soccero.match.repo.TournamentMatchRepository
 import com.leanforge.soccero.queue.QueueService
 import com.leanforge.soccero.team.domain.LeagueTeam
+import com.leanforge.soccero.tournament.TournamentService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import java.util.stream.Collectors
 
 @Service
@@ -23,6 +27,7 @@ class TournamentMatchService @Autowired constructor(
         private val tournamentMatchRepository: TournamentMatchRepository,
         private val matchResultRepository: MatchResultRepository,
         private val queueService: QueueService,
+        private val tournamentService: TournamentService,
         private val slackService: SlackService) {
 
     fun createMatch(league: League, competition: Competition, players: Set<String>) {
@@ -50,6 +55,18 @@ class TournamentMatchService @Autowired constructor(
         if (!league.competitions.contains(competition)) {
             throw MissingCompetitionException()
         }
+
+        val results = getResults(league.name, competition)
+        val competitors = tournamentService.pendingCompetitors(league, competition, results)
+
+        if (!competitors.contains(setOf(teamA, teamB))) {
+            throw AmbiguousPlayerToTeamMappingException(
+                    "Listen! " +
+                            "There is no upcoming match for `${competition.label()}` " +
+                            "${teamKeywordsLabel(teamA)} vs ${teamKeywordsLabel(teamB)}." +
+                            "\n:smoke: :smoke: :smoke:")
+        }
+
         queueService.triggerGameScheduler(competition, setOf(teamA, teamB))
         val message = slackService.sendChannelMessage(league.slackChannelId, createMatchMessage(teamA, teamB, competition, null), "trophy")
         tournamentMatchRepository.save(TournamentMatch(league.name, competition, setOf(teamA, teamB), message.channelId, message.timestamp))
@@ -57,31 +74,22 @@ class TournamentMatchService @Autowired constructor(
 
     fun registerResult(winningSlackId: String, slackMessage: SlackMessage) : MatchResult? {
         val match = tournamentMatchRepository.findOneBySlackMessageIdAndSlackChannelId(slackMessage.timestamp, slackMessage.channelId) ?: return null
-        val competitors = match.competitors.toList()
-
-
+        verifyNoFrozen(match)
         val winningTeam = findWinningTeam(winningSlackId, match)
 
         val result = matchResultRepository.save(MatchResult(match.leagueName, match.competition, match.competitors.minusElement(winningTeam).first(), winningTeam, match.uuid))
 
-        val winners = matchResultRepository.findAllByMatchId(match.uuid)
-                .map { it.winner }
-                .collect(Collectors.toSet())
-
-        if (winners.size > 1) {
-            slackService.updateMessage(slackMessage, createMatchMessage(competitors[0], competitors[1], match.competition, null))
+        if (updateResultMessage(match, slackMessage)) {
             throw WinnersCollisionException(winningSlackId)
         }
-
-        val winner = winners.singleOrNull()
-        slackService.updateMessage(slackMessage, createMatchMessage(competitors[0], competitors[1], match.competition, winner))
 
         return result
     }
 
     fun removeResult(winningSlackId: String, slackMessage: SlackMessage) : MatchResult? {
         val match = tournamentMatchRepository.findOneBySlackMessageIdAndSlackChannelId(slackMessage.timestamp, slackMessage.channelId) ?: return null
-        val competitors = match.competitors.toList()
+        verifyNoFrozen(match)
+
         val winningTeam = findWinningTeam(winningSlackId, match)
         val result : MatchResult? = matchResultRepository.findAllByMatchId(match.uuid)
                 .filter { it.winner == winningTeam }
@@ -91,18 +99,36 @@ class TournamentMatchService @Autowired constructor(
             matchResultRepository.delete(result)
         }
 
+        updateResultMessage(match, slackMessage)
+
+        return result
+    }
+
+    private fun verifyNoFrozen(match: TournamentMatch) {
+        val lastUpdate = matchResultRepository.findAllByMatchId(match.uuid)
+                .map { it.createDate }
+                .max(Comparator.naturalOrder())
+                .orElseGet({ Instant.now() })
+
+        if (lastUpdate.isBefore(Instant.now().minus(1, ChronoUnit.HOURS))) {
+            throw FrozenResultException()
+        }
+    }
+
+    private fun updateResultMessage(match: TournamentMatch, slackMessage: SlackMessage) : Boolean {
+        val opponents = match.competitors.toList()
         val winners = matchResultRepository.findAllByMatchId(match.uuid)
                 .map { it.winner }
                 .collect(Collectors.toSet())
 
         if (winners.size > 1) {
-            slackService.updateMessage(slackMessage, createMatchMessage(competitors[0], competitors[1], match.competition, null))
-        } else {
-            val winner = winners.singleOrNull()
-            slackService.updateMessage(slackMessage, createMatchMessage(competitors[0], competitors[1], match.competition, winner))
+            slackService.updateMessage(slackMessage, createMatchMessage(opponents[0], opponents[1], match.competition, null))
+            return true
         }
 
-        return result
+        val winner = winners.singleOrNull()
+        slackService.updateMessage(slackMessage, createMatchMessage(opponents[0], opponents[1], match.competition, winner))
+        return false
     }
 
     fun listResults(leagueName: String, competition: Competition) : String {
@@ -140,6 +166,10 @@ class TournamentMatchService @Autowired constructor(
     private fun createMatchMessage(teamA: LeagueTeam, teamB: LeagueTeam, competition: Competition, winner: LeagueTeam?) : String {
         return "${matchLineMessage(teamA, teamB, competition, winner)}`\n" +
                 "Did you win? Click :trophy:";
+    }
+
+    private fun teamKeywordsLabel(team: LeagueTeam) : String {
+        return teamKeywordsLabel(team, null)
     }
 
     private fun teamKeywordsLabel(team: LeagueTeam, winner: LeagueTeam?) : String {
