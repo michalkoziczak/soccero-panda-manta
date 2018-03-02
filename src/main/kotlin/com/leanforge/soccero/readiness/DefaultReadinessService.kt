@@ -1,5 +1,7 @@
 package com.leanforge.soccero.readiness
 
+import com.leanforge.game.slack.SlackAction
+import com.leanforge.game.slack.SlackActions
 import com.leanforge.game.slack.SlackMessage
 import com.leanforge.game.slack.SlackService
 import com.leanforge.soccero.readiness.domain.Readiness
@@ -58,7 +60,15 @@ class DefaultReadinessService @Autowired constructor(
     }
 
     override fun sendGenericReadinessMessage(channelId: String) {
-        val message = slackService.sendChannelMessage(channelId, "Are you ready to play? Click :heavy_plus_sign:\n\nRemember to update your status.", "heavy_plus_sign")
+        val actions = SlackActions(
+                "Your status",
+                "Are you ready to play some game?",
+                "You can't click buttons, but you can react with :heavy_plus_sign: instead.",
+                "#3AA3E3",
+                SlackAction.button("state", "I'm ready!", "ready"),
+                SlackAction.button("state", "Busy...", "busy")
+        )
+        val message = slackService.sendChannelMessage(channelId, "_Remember to update your status_", actions)
         readinessMessageRepository.save(ReadinessMessage(message.timestamp, message.channelId))
     }
 
@@ -67,9 +77,12 @@ class DefaultReadinessService @Autowired constructor(
     }
 
     override fun markEveryoneBusy() {
-        val allBusy = readinessRepository.findAll()
+        val allBusy = readinessRepository.findAllByState(Readiness.State.READY)
                 .map { it.copy(state = Readiness.State.BUSY) }
                 .toList()
+        if (allBusy.isEmpty()) {
+            return;
+        }
         readinessRepository.save(allBusy)
     }
 

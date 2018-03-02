@@ -48,7 +48,7 @@ class DefaultTournamentService @Autowired constructor(
 
         var round : Tournament = initial
         var resultsLeft : List<MatchResult> = results
-        while(round.hasAllResults(resultsLeft)) {
+        while(round.hasAllResults(resultsLeft) && round.competitors().isNotEmpty() && resultsLeft.isNotEmpty()) {
             val currentRound = round.filterCurrentResults(resultsLeft)
             round = round.currentState(currentRound)
             resultsLeft -= currentRound
