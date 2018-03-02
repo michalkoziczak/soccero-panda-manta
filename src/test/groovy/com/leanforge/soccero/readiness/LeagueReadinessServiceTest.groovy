@@ -11,6 +11,7 @@ import com.leanforge.soccero.readiness.repo.LeagueStatusMessageRepository
 import com.leanforge.soccero.team.domain.LeagueTeam
 import com.leanforge.soccero.tournament.TournamentService
 import com.leanforge.soccero.tournament.domain.Tournament
+import com.leanforge.soccero.tournament.domain.TournamentState
 import spock.lang.Specification
 
 import java.time.Instant
@@ -59,8 +60,9 @@ class LeagueReadinessServiceTest extends Specification {
 
     def "should send first status message"() {
         given:
+        def tournament = new Tournament('', new Competition('a', 2), [], [], UUID.randomUUID())
         leagueService.findAllStarted() >> [league]
-        tournamentService.currentState(league, _, _) >> new Tournament('', new Competition('a', 2), [], [], UUID.randomUUID())
+        tournamentService.currentState(league, _, _) >> new TournamentState(0, tournament, [], [], [])
         tournamentService.pendingCompetitors(league, _, _) >> []
 
         def msg1 = new SlackMessage('t1', 'ch0', null)
@@ -83,8 +85,9 @@ class LeagueReadinessServiceTest extends Specification {
 
     def "should resend status message"() {
         given:
+        def tournament = new Tournament('', new Competition('a', 2), [], [], UUID.randomUUID())
         leagueService.findAllStarted() >> [league]
-        tournamentService.currentState(league, _, _) >> new Tournament('', new Competition('a', 2), [], [], UUID.randomUUID())
+        tournamentService.currentState(league, _, _) >> new TournamentState(0, tournament, [], [], [])
         tournamentService.pendingCompetitors(league, _, _) >> []
 
         def msg1 = new SlackMessage('t1', 'ch0', null)

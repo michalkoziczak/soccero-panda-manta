@@ -2,7 +2,7 @@ package com.leanforge.soccero.match
 
 import com.leanforge.game.slack.SlackMessage
 import com.leanforge.game.slack.listener.*
-import com.leanforge.soccero.IdsExctractor
+import com.leanforge.soccero.IdsExtractor
 import com.leanforge.soccero.help.HelpController
 import com.leanforge.soccero.help.domain.CommandArg
 import com.leanforge.soccero.help.domain.CommandExample
@@ -10,6 +10,7 @@ import com.leanforge.soccero.help.domain.CommandManual
 import com.leanforge.soccero.league.DefaultLeagueService
 import com.leanforge.soccero.league.parser.CompetitionParser
 import com.leanforge.soccero.readiness.LeagueReadinessService
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 
 @SlackController
@@ -18,6 +19,8 @@ class TournamentMatchController @Autowired constructor(
         val tournamentMatchService: DefaultTournamentMatchService,
         val leagueReadinessService: LeagueReadinessService
 ) : HelpController.CommandManualProvider, HelpController.AdminCommandManualProvider {
+
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     override fun listCommands(): Iterable<CommandManual> {
         val leagueName = CommandArg("leagueName", "'([^']+)'", "Name of the league")
@@ -82,13 +85,16 @@ class TournamentMatchController @Autowired constructor(
 
     @SlackMessageListener(value = "createMatch '(.+)' ([^\\s]+) (.*)", sendTyping = true)
     fun createMatch(
+            @SlackUserId slackUserId: String,
             @SlackMessageRegexGroup(1) leagueName: String,
             @SlackMessageRegexGroup(2) competitionLabel: String,
             @SlackMessageRegexGroup(3) playerIdsString: String
     ) : SlackReactionResponse {
+        logger.info("{} creating match {}#{} with players {}", slackUserId, leagueName, competitionLabel, playerIdsString)
+
         val league = leagueService.findStartedLeagueByName(leagueName) ?: return SlackReactionResponse("confused")
 
-        val playerIds = IdsExctractor.extractIds(playerIdsString)
+        val playerIds = IdsExtractor.extractIds(playerIdsString)
         val competition = CompetitionParser.parseSingleDefinition(competitionLabel)
 
         tournamentMatchService.createMatch(league, competition, playerIds.toSet())
@@ -101,17 +107,20 @@ class TournamentMatchController @Autowired constructor(
             @SlackUserId winnerId: String,
             slackMessage: SlackMessage
     ) {
+        logger.info("{} registers win", winnerId)
         tournamentMatchService.registerResult(winnerId, slackMessage)
         leagueReadinessService.updateStatusMessagesForAllStartedLeagues()
     }
 
     @SlackThreadMessageListener("winner (.*)")
     fun manualRegisterWin(
+            @SlackUserId slackUserId: String,
             @SlackMessageRegexGroup(1) winners: String,
             @SlackChannelId channel: String,
             @SlackThreadId thread: String
     ) : SlackReactionResponse {
-        IdsExctractor.extractIds(winners)
+        logger.info("{} manually registers winners: {}", slackUserId, winners)
+        IdsExtractor.extractIds(winners)
                 .onEach { tournamentMatchService.registerResult(it, SlackMessage(thread, channel, null)) }
         leagueReadinessService.updateStatusMessagesForAllStartedLeagues()
 
@@ -123,6 +132,7 @@ class TournamentMatchController @Autowired constructor(
             @SlackUserId winnerId: String,
             slackMessage: SlackMessage
     ) {
+        logger.info("{} removes win", winnerId)
         tournamentMatchService.removeResult(winnerId, slackMessage)
         leagueReadinessService.updateStatusMessagesForAllStartedLeagues()
     }

@@ -2,7 +2,7 @@ package com.leanforge.soccero.readiness
 
 import com.leanforge.game.slack.SlackMessage
 import com.leanforge.game.slack.listener.*
-import com.leanforge.soccero.IdsExctractor
+import com.leanforge.soccero.IdsExtractor
 import com.leanforge.soccero.help.HelpController
 import com.leanforge.soccero.help.domain.CommandArg
 import com.leanforge.soccero.help.domain.CommandExample
@@ -88,14 +88,14 @@ class ReadinessController
 
     @SlackMessageListener("playerReady (.*)")
     fun manualPlayerReady(@SlackMessageRegexGroup(1) players: String) {
-        IdsExctractor.extractIds(players)
+        IdsExtractor.extractIds(players)
                 .onEach { readinessService.markReady(it) }
         leagueReadinessService.updateStatusMessagesForAllStartedLeagues()
     }
 
     @SlackMessageListener("playerBusy (.*)")
     fun manualPlayerBusy(@SlackMessageRegexGroup(1) players: String) {
-        IdsExctractor.extractIds(players)
+        IdsExtractor.extractIds(players)
                 .onEach { readinessService.markBusy(it) }
         leagueReadinessService.updateStatusMessagesForAllStartedLeagues()
     }

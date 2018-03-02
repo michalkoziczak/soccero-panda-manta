@@ -161,46 +161,42 @@ class TournamentServiceTest extends Specification {
 
         when:
         def round1 = tournamentService.currentState(league, compA, initialResults)
-        def round1Competitors = tournamentService.pendingCompetitors(league, compA, initialResults)
         def round2 = tournamentService.currentState(league, compA, endOfRound1)
-        def round2Competitors = tournamentService.pendingCompetitors(league, compA, endOfRound1)
         def middleRound2 = tournamentService.currentState(league, compA, middleOfRound2)
-        def middleRound2Competitors = tournamentService.pendingCompetitors(league, compA, middleOfRound2)
         def round3 = tournamentService.currentState(league, compA, endOfRound2)
-        def round3Competitors = tournamentService.pendingCompetitors(league, compA, endOfRound2)
 
         then:
         // all competitors in the round (pending + done)
-        round1.competitors() == [
+        round1.tournament.competitors() == [
                 [teams[0], teams[1]].toSet(),
                 [teams[2], teams[3]].toSet()
         ]
-        round2.competitors() == [
+        round2.tournament.competitors() == [
                 [teams[0], teams[3]].toSet(),
                 [teams[4], teams[1]].toSet()
         ]
-        middleRound2.competitors() == [
+        middleRound2.tournament.competitors() == [
                 [teams[0], teams[3]].toSet(),
                 [teams[4], teams[1]].toSet()
         ]
-        round3.competitors() == [
+        round3.tournament.competitors() == [
                 [teams[1], teams[3]].toSet(),
                 [teams[0], teams[2]].toSet()
         ]
 
         // pending competitors in current round
-        round1Competitors == [
+        round1.pendingCompetitors == [
                 [teams[0], teams[1]].toSet(),
                 [teams[2], teams[3]].toSet()
         ]
-        round2Competitors == [
+        round2.pendingCompetitors == [
                 [teams[0], teams[3]].toSet(),
                 [teams[4], teams[1]].toSet()
         ]
-        middleRound2Competitors == [
+        middleRound2.pendingCompetitors == [
                 [teams[4], teams[1]].toSet()
         ]
-        round3Competitors == [
+        round3.pendingCompetitors == [
                 [teams[1], teams[3]].toSet(),
                 [teams[0], teams[2]].toSet()
         ]

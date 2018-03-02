@@ -62,11 +62,11 @@ class DefaultReadinessService @Autowired constructor(
     override fun sendGenericReadinessMessage(channelId: String) {
         val actions = SlackActions(
                 "Your status",
-                "Are you ready to play some game?",
-                "You can't click buttons, but you can react with :heavy_plus_sign: instead.",
+                "Are you ready to play a game?",
+                "You can't use buttons, but you can add :heavy_plus_sign: reaction instead.",
                 "#3AA3E3",
                 SlackAction.button("state", "I'm ready!", "ready"),
-                SlackAction.button("state", "Busy...", "busy")
+                SlackAction.button("state", "Sorry, Busy...", "busy")
         )
         val message = slackService.sendChannelMessage(channelId, "_Remember to update your status_", actions)
         readinessMessageRepository.save(ReadinessMessage(message.timestamp, message.channelId))

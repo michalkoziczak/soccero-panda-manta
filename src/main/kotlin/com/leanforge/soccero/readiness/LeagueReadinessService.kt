@@ -1,7 +1,6 @@
 package com.leanforge.soccero.readiness
 
 import com.leanforge.game.slack.SlackService
-import com.leanforge.soccero.league.DefaultLeagueService
 import com.leanforge.soccero.league.LeagueService
 import com.leanforge.soccero.league.domain.Competition
 import com.leanforge.soccero.league.domain.League
@@ -11,7 +10,7 @@ import com.leanforge.soccero.readiness.domain.LeagueStatusMessage
 import com.leanforge.soccero.readiness.repo.LeagueStatusMessageRepository
 import com.leanforge.soccero.team.domain.LeagueTeam
 import com.leanforge.soccero.tournament.TournamentService
-import com.leanforge.soccero.tournament.domain.Tournament
+import com.leanforge.soccero.tournament.domain.TournamentState
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.scheduling.annotation.Scheduled
@@ -98,27 +97,25 @@ class LeagueReadinessService
                 ?.toSlackMessage() ?: return
 
         val allResults = tournamentMatchService.getResults(league.name, competition)
-        val currentResults = tournamentService.currentResults(league, competition, allResults)
         val currentRound = tournamentService.currentState(league, competition, allResults)
 
-        val statusMessage = statusMessage(currentRound, currentResults)
+        val statusMessage = statusMessage(currentRound)
         slackService.updateMessage(slackMessage, statusMessage)
     }
 
 
     private fun createNewStatusMessage(league: League, competition: Competition) {
         val allResults = tournamentMatchService.getResults(league.name, competition)
-        val currentResults = tournamentService.currentResults(league, competition, allResults)
         val currentRound = tournamentService.currentState(league, competition, allResults)
 
-        val statusMessage = statusMessage(currentRound, currentResults)
+        val statusMessage = statusMessage(currentRound)
         val msg = slackService.sendChannelMessage(league.slackChannelId, statusMessage)
         leagueStatusMessageRepository.save(LeagueStatusMessage(msg.timestamp, msg.channelId, league.name, competition))
     }
 
-    private fun statusMessage(round: Tournament, roundResults: List<MatchResult>) : String {
-        return ":trophy: `${round.competition.label()}`\n>>>" +
-                listedCompetitors(round.competitors(), roundResults)
+    private fun statusMessage(round: TournamentState) : String {
+        return ":trophy: #${round.round + 1} `${round.tournament.competition.label()}`\n>>>" +
+                listedCompetitors(round.tournament.competitors(), round.currentRoundResults)
     }
 
     private fun listedCompetitors(competitors: List<Set<LeagueTeam>>, roundResults: List<MatchResult>) : String {

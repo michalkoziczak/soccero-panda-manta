@@ -3,7 +3,7 @@ package com.leanforge.soccero.league
 import com.leanforge.game.slack.SlackMessage
 import com.leanforge.game.slack.SlackService
 import com.leanforge.game.slack.listener.*
-import com.leanforge.soccero.IdsExctractor
+import com.leanforge.soccero.IdsExtractor
 import com.leanforge.soccero.help.HelpController
 import com.leanforge.soccero.help.domain.CommandArg
 import com.leanforge.soccero.help.domain.CommandExample
@@ -126,7 +126,7 @@ open class LeagueController @Autowired constructor(val slackService: SlackServic
     @SlackThreadMessageListener("add (.*)")
     fun addPlayerToThisLeague(@SlackMessageRegexGroup(1) userIds: String, @SlackThreadId thread: String, @SlackChannelId channel: String) {
         leagueService.getPendingLeagueNameForThreadId(channel, thread).ifPresent { name ->
-            IdsExctractor.extractIds(userIds).forEach { id -> leagueService.addPlayerAndUpdateStatusMessage(name, id)}
+            IdsExtractor.extractIds(userIds).forEach { id -> leagueService.addPlayerAndUpdateStatusMessage(name, id)}
         }
     }
 

@@ -2,7 +2,7 @@ package com.leanforge.soccero
 
 import java.util.regex.Pattern
 
-object IdsExctractor {
+object IdsExtractor {
 
     private val idsPattern: Pattern = Pattern.compile("<@([^>]+)>")
 

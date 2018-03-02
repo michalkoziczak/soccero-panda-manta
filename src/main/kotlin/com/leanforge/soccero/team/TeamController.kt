@@ -3,7 +3,7 @@ package com.leanforge.soccero.team
 import com.leanforge.game.slack.SlackMessage
 import com.leanforge.game.slack.SlackService
 import com.leanforge.game.slack.listener.*
-import com.leanforge.soccero.IdsExctractor
+import com.leanforge.soccero.IdsExtractor
 import com.leanforge.soccero.help.HelpController
 import com.leanforge.soccero.help.domain.CommandArg
 import com.leanforge.soccero.help.domain.CommandExample
@@ -38,7 +38,7 @@ class TeamController @Autowired constructor(val teamService: TeamServiceInterfac
             @SlackMessageRegexGroup(1) slackIds: String,
             slackMessage: SlackMessage) : SlackReactionResponse? {
         return leagueService.getPendingLeagueNameForThreadId(channel, thread).map {
-            teamService.addExclusion(it, IdsExctractor.extractIds(slackIds).toSet())
+            teamService.addExclusion(it, IdsExtractor.extractIds(slackIds).toSet())
             leagueService.updateMessage(it)
             SlackReactionResponse("ok_hand")
         }

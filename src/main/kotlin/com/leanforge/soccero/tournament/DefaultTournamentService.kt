@@ -6,6 +6,7 @@ import com.leanforge.soccero.league.domain.League
 import com.leanforge.soccero.match.domain.MatchResult
 import com.leanforge.soccero.team.domain.LeagueTeam
 import com.leanforge.soccero.tournament.domain.Tournament
+import com.leanforge.soccero.tournament.domain.TournamentState
 import com.leanforge.soccero.tournament.exception.MissingTournamentException
 import com.leanforge.soccero.tournament.exception.TournamentAlreadyExistsException
 import com.leanforge.soccero.tournament.repo.TournamentRepository
@@ -24,37 +25,32 @@ class DefaultTournamentService @Autowired constructor(
     }
 
     override fun pendingCompetitors(league: League, competition: Competition, results: List<MatchResult>): List<Set<LeagueTeam>> {
-
-        val currentState = current(league, competition, results)
-        val round : Tournament = currentState.first
-        val resultsLeft : List<MatchResult> = currentState.second
-
-        return round.competitors()
-                .filter { c -> resultsLeft.none { r -> r.hasTeams(c) } }
-                .toList()
+        return currentState(league, competition, results).pendingCompetitors
     }
 
     override fun currentResults(league: League, competition: Competition, results: List<MatchResult>): List<MatchResult> {
-        return current(league, competition, results).second
+        return currentState(league, competition, results).currentRoundResults
     }
 
 
-    override fun currentState(league: League, competition: Competition, results: List<MatchResult>): Tournament {
-        return current(league, competition, results).first
-    }
-
-    private fun current(league: League, competition: Competition, results: List<MatchResult>) : Pair<Tournament, List<MatchResult>> {
+    override fun currentState(league: League, competition: Competition, results: List<MatchResult>): TournamentState {
         val initial = tournamentRepository.findOneByNameAndCompetition(league.name, competition) ?: throw MissingTournamentException(league.name, competition.label())
 
+        var roundNo : Int = 0
         var round : Tournament = initial
         var resultsLeft : List<MatchResult> = results
         while(round.hasAllResults(resultsLeft) && round.competitors().isNotEmpty() && resultsLeft.isNotEmpty()) {
             val currentRound = round.filterCurrentResults(resultsLeft)
             round = round.currentState(currentRound)
             resultsLeft -= currentRound
+            roundNo++
         }
 
-        return Pair(round, resultsLeft)
+        val pendingCompetitors = round.competitors()
+                .filter { c -> resultsLeft.none { r -> r.hasTeams(c) } }
+                .toList()
+
+        return TournamentState(roundNo, round, results, resultsLeft, pendingCompetitors)
     }
 
     override fun createTournaments(league: League) {
