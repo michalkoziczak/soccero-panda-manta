@@ -22,15 +22,24 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.stream.Collectors
 
+interface TournamentMatchService {
+    fun createMatch(league: League, competition: Competition, players: Set<String>)
+    fun createMatch(league: League, competition: Competition, teamA: LeagueTeam, teamB: LeagueTeam)
+    fun registerResult(winningSlackId: String, slackMessage: SlackMessage) : MatchResult?
+    fun removeResult(winningSlackId: String, slackMessage: SlackMessage) : MatchResult?
+    fun listResults(leagueName: String, competition: Competition) : String
+    fun getResults(leagueName: String, competition: Competition) : List<MatchResult>
+}
+
 @Service
-class TournamentMatchService @Autowired constructor(
+class DefaultTournamentMatchService @Autowired constructor(
         private val tournamentMatchRepository: TournamentMatchRepository,
         private val matchResultRepository: MatchResultRepository,
         private val queueService: QueueService,
         private val tournamentService: TournamentService,
-        private val slackService: SlackService) {
+        private val slackService: SlackService) : TournamentMatchService {
 
-    fun createMatch(league: League, competition: Competition, players: Set<String>) {
+    override fun createMatch(league: League, competition: Competition, players: Set<String>) {
         val teams = league.teams
                 .filter { it.size() == competition.players }
                 .filter { team -> team.slackIds.any { players.contains(it) } }
@@ -51,7 +60,7 @@ class TournamentMatchService @Autowired constructor(
         createMatch(league, competition, teams[0], teams[1])
     }
 
-    fun createMatch(league: League, competition: Competition, teamA: LeagueTeam, teamB: LeagueTeam) {
+    override fun createMatch(league: League, competition: Competition, teamA: LeagueTeam, teamB: LeagueTeam) {
         if (!league.competitions.contains(competition)) {
             throw MissingCompetitionException()
         }
@@ -72,9 +81,9 @@ class TournamentMatchService @Autowired constructor(
         tournamentMatchRepository.save(TournamentMatch(league.name, competition, setOf(teamA, teamB), message.channelId, message.timestamp))
     }
 
-    fun registerResult(winningSlackId: String, slackMessage: SlackMessage) : MatchResult? {
+    override fun registerResult(winningSlackId: String, slackMessage: SlackMessage) : MatchResult? {
         val match = tournamentMatchRepository.findOneBySlackMessageIdAndSlackChannelId(slackMessage.timestamp, slackMessage.channelId) ?: return null
-        verifyNoFrozen(match)
+        verifyNoFrozen(winningSlackId, match)
         val winningTeam = findWinningTeam(winningSlackId, match)
 
         val result = matchResultRepository.save(MatchResult(match.leagueName, match.competition, match.competitors.minusElement(winningTeam).first(), winningTeam, match.uuid))
@@ -86,9 +95,9 @@ class TournamentMatchService @Autowired constructor(
         return result
     }
 
-    fun removeResult(winningSlackId: String, slackMessage: SlackMessage) : MatchResult? {
+    override fun removeResult(winningSlackId: String, slackMessage: SlackMessage) : MatchResult? {
         val match = tournamentMatchRepository.findOneBySlackMessageIdAndSlackChannelId(slackMessage.timestamp, slackMessage.channelId) ?: return null
-        verifyNoFrozen(match)
+        verifyNoFrozen(winningSlackId, match)
 
         val winningTeam = findWinningTeam(winningSlackId, match)
         val result : MatchResult? = matchResultRepository.findAllByMatchId(match.uuid)
@@ -104,14 +113,14 @@ class TournamentMatchService @Autowired constructor(
         return result
     }
 
-    private fun verifyNoFrozen(match: TournamentMatch) {
+    private fun verifyNoFrozen(callerId: String, match: TournamentMatch) {
         val lastUpdate = matchResultRepository.findAllByMatchId(match.uuid)
                 .map { it.createDate }
                 .max(Comparator.naturalOrder())
                 .orElseGet({ Instant.now() })
 
         if (lastUpdate.isBefore(Instant.now().minus(1, ChronoUnit.HOURS))) {
-            throw FrozenResultException()
+            throw FrozenResultException(callerId)
         }
     }
 
@@ -131,13 +140,13 @@ class TournamentMatchService @Autowired constructor(
         return false
     }
 
-    fun listResults(leagueName: String, competition: Competition) : String {
+    override fun listResults(leagueName: String, competition: Competition) : String {
         return "Results:\n>>>" + getResults(leagueName, competition)
                 .mapIndexed { index, it -> "${index + 1}. " + matchLineMessage(it.winner, it.loser, it.competition, it.winner) }
                 .joinToString("\n")
     }
 
-    fun getResults(leagueName: String, competition: Competition) : List<MatchResult> {
+    override fun getResults(leagueName: String, competition: Competition) : List<MatchResult> {
         val finalResults = mutableListOf<MatchResult>()
         val duplicatedResults = mutableListOf<MatchResult>()
         matchResultRepository.findAllByLeagueNameAndCompetition(leagueName, competition)

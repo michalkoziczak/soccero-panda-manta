@@ -3,14 +3,14 @@ package com.leanforge.soccero.tournament
 import com.leanforge.game.slack.listener.SlackController
 import com.leanforge.game.slack.listener.SlackMessageListener
 import com.leanforge.game.slack.listener.SlackMessageRegexGroup
-import com.leanforge.soccero.league.LeagueService
+import com.leanforge.soccero.league.DefaultLeagueService
 import com.leanforge.soccero.league.parser.CompetitionParser
 import org.springframework.beans.factory.annotation.Autowired
 
 @SlackController
 class TournamentStateController @Autowired constructor(
         private val tournamentStateService: TournamentStateService,
-        private val leagueService: LeagueService) {
+        private val leagueService: DefaultLeagueService) {
 
 
     @SlackMessageListener("tournamentState '(.*)' ([^\\s]+)")

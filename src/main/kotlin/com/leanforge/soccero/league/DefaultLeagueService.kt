@@ -15,15 +15,33 @@ import org.springframework.stereotype.Service
 import java.util.*
 import java.util.stream.Collectors
 
+interface LeagueService {
+    fun createLeague(initMessage: SlackMessage, name: String, competitions: Set<Competition>)
+    fun addPlayerAndUpdateStatusMessage(message: SlackMessage, playerSlackId: String)
+    fun addPlayerAndUpdateStatusMessage(name: String, playerSlackId: String)
+    fun removePlayerAndUpdateStatusMessage(message: SlackMessage, playerSlackId: String)
+    fun findStartedLeagueByName(name: String) : League?
+    fun findOnlyStartedLeague() : League?
+    fun findLeagueByThreadAndState(channelId: String, threadId: String, state: League.LeagueState) : League?
+    fun pauseLeague(name: String) : League?
+    fun resumeLeague(name: String) : League?
+    fun updateMessage(leagueName: String)
+    fun startLeague(name: String)
+    fun getPendingLeagueNameForThreadId(channelId: String, threadId: String) : Optional<String>
+    fun listLeagues(): String
+    fun endLeague(name: String)
+    fun findAllStarted() : List<League>
+}
+
 @Service
-open class LeagueService @Autowired constructor(
+class DefaultLeagueService @Autowired constructor(
         private val leagueRepository: LeagueRepository,
         private val leaguePlayerRepository: LeaguePlayerRepository,
         private val slackService: SlackService,
         private val leagueMessages: LeagueMessages,
-        private val teamService: TeamServiceInterface) {
+        private val teamService: TeamServiceInterface) : LeagueService {
 
-    fun createLeague(initMessage: SlackMessage, name: String, competitions: Set<Competition>) {
+    override fun createLeague(initMessage: SlackMessage, name: String, competitions: Set<Competition>) {
         requireLeagueNotPresent(name)
         val startMessage = slackService.sendChannelMessage(initMessage.channelId, leagueMessages.pendingMessage(name, emptySet(), competitions, emptyList()))
         val league = League(name)
@@ -34,28 +52,28 @@ open class LeagueService @Autowired constructor(
         slackService.addReactions(startMessage, "heavy_plus_sign")
     }
 
-    fun addPlayerAndUpdateStatusMessage(message: SlackMessage, playerSlackId: String) {
+    override fun addPlayerAndUpdateStatusMessage(message: SlackMessage, playerSlackId: String) {
         findPendingLeagueBySlackMessage(message).ifPresent { league ->
             addPlayer(league.name, playerSlackId)
             updateMessage(league)
         }
     }
 
-    fun addPlayerAndUpdateStatusMessage(name: String, playerSlackId: String) {
+    override fun addPlayerAndUpdateStatusMessage(name: String, playerSlackId: String) {
         findPendingLeagueByName(name).ifPresent { league ->
             addPlayer(league.name, playerSlackId)
             updateMessage(league)
         }
     }
 
-    fun removePlayerAndUpdateStatusMessage(message: SlackMessage, playerSlackId: String) {
+    override fun removePlayerAndUpdateStatusMessage(message: SlackMessage, playerSlackId: String) {
         findPendingLeagueBySlackMessage(message).ifPresent { league ->
             findPlayer(league.name, playerSlackId).ifPresent { leaguePlayerRepository.delete(it) }
             updateMessage(league)
         }
     }
 
-    fun findStartedLeagueByName(name: String) : League? {
+    override fun findStartedLeagueByName(name: String) : League? {
         val league = leagueRepository.findOne(name)
         if (league.state != League.LeagueState.STARTED) {
             return null
@@ -64,13 +82,13 @@ open class LeagueService @Autowired constructor(
         return league
     }
 
-    fun findOnlyStartedLeague() : League? {
+    override fun findOnlyStartedLeague() : League? {
         return leagueRepository.findAll()
                 .filter { it.state == League.LeagueState.STARTED }
                 .singleOrNull()
     }
 
-    fun findLeagueByThreadAndState(channelId: String, threadId: String, state: League.LeagueState) : League? {
+    override fun findLeagueByThreadAndState(channelId: String, threadId: String, state: League.LeagueState) : League? {
         val league = leagueRepository.findOneBySlackMessageIdAndSlackChannelId(threadId, channelId) ?: return null
 
         if (league.state != state) {
@@ -80,7 +98,7 @@ open class LeagueService @Autowired constructor(
         return league
     }
 
-    fun pauseLeague(name: String) : League? {
+    override fun pauseLeague(name: String) : League? {
         val league = leagueRepository.findOne(name) ?: return null
         if (league.state != League.LeagueState.STARTED) {
             return null
@@ -89,7 +107,7 @@ open class LeagueService @Autowired constructor(
         return leagueRepository.save(league)
     }
 
-    fun resumeLeague(name: String) : League? {
+    override fun resumeLeague(name: String) : League? {
         val league = leagueRepository.findOne(name) ?: return null
         if (league.state != League.LeagueState.PAUSED) {
             return null
@@ -124,7 +142,7 @@ open class LeagueService @Autowired constructor(
                 .findAny()
     }
 
-    public fun updateMessage(leagueName: String) {
+    override fun updateMessage(leagueName: String) {
         findPendingLeagueByName(leagueName).ifPresent { updateMessage(it) }
     }
 
@@ -147,7 +165,7 @@ open class LeagueService @Autowired constructor(
         }
     }
 
-    fun startLeague(name: String) {
+    override fun startLeague(name: String) {
         findPendingLeagueByName(name).ifPresent { league ->
             markStarted(league)
             setupTeams(league)
@@ -157,7 +175,7 @@ open class LeagueService @Autowired constructor(
         }
     }
 
-    fun getPendingLeagueNameForThreadId(channelId: String, threadId: String) : Optional<String> {
+    override fun getPendingLeagueNameForThreadId(channelId: String, threadId: String) : Optional<String> {
         return findPendingLeagueBySlackMessage(SlackMessage(threadId, channelId, null)).map { it.name }
     }
 
@@ -177,7 +195,7 @@ open class LeagueService @Autowired constructor(
         return league.competitions.map({ it.players }).toSet()
     }
 
-    fun listLeagues(): String {
+    override fun listLeagues(): String {
         return "Leagues:\n" + leagueRepository
                 .findAll(Sort(Sort.Direction.DESC, "createdOn"))
                 .map { ":${it.state.icon}: `${it.name}`" }
@@ -189,9 +207,15 @@ open class LeagueService @Autowired constructor(
 
     }
 
-    fun endLeague(name: String) {
+    override fun endLeague(name: String) {
         val league = findStartedLeagueByName(name) ?: return
         league.state = League.LeagueState.FINISHED
         leagueRepository.save(league)
+    }
+
+    override fun findAllStarted() : List<League> {
+        return leagueRepository.findAll()
+                .filter { it.state == League.LeagueState.STARTED }
+                .toList()
     }
 }

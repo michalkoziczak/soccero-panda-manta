@@ -11,4 +11,5 @@ interface TournamentService {
     fun currentState(league: League, competition: Competition, results: List<MatchResult>) : Tournament
     fun pendingCompetitors(league: League, competition: Competition, results: List<MatchResult>) : List<Set<LeagueTeam>>
     fun listPendingCompetitors(league: League, competition: Competition, results: List<MatchResult>) : String
+    fun currentResults(league: League, competition: Competition, results: List<MatchResult>): List<MatchResult>
 }

@@ -1,7 +1,9 @@
 package com.leanforge.soccero.tournament
 
 import com.leanforge.game.slack.listener.*
-import com.leanforge.soccero.league.LeagueService
+import com.leanforge.soccero.help.HelpController
+import com.leanforge.soccero.help.domain.CommandManual
+import com.leanforge.soccero.league.DefaultLeagueService
 import com.leanforge.soccero.league.domain.League
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -9,9 +11,17 @@ import org.springframework.beans.factory.annotation.Autowired
 class TournamentController
 
 @Autowired constructor(
-        private val leagueService: LeagueService,
-        private val tournamentService: TournamentService) {
+        private val leagueService: DefaultLeagueService,
+        private val tournamentService: TournamentService) : HelpController.AdminCommandManualProvider {
 
+    override fun listAdminCommands(): Iterable<CommandManual> {
+        return listOf(
+                CommandManual(
+                        name = "createTournament",
+                        description = "(on started league thread) Generates tournament trees for all competitions in the league."
+                )
+        )
+    }
 
     @SlackThreadMessageListener("createTournament")
     fun createTournament(

@@ -6,7 +6,6 @@ import com.leanforge.soccero.league.domain.League
 import com.leanforge.soccero.league.domain.LeaguePlayer
 import com.leanforge.soccero.league.repo.LeaguePlayerRepository
 import com.leanforge.soccero.league.repo.LeagueRepository
-import com.leanforge.soccero.team.TeamService
 import com.leanforge.soccero.team.TeamServiceInterface
 import spock.lang.Specification
 import spock.lang.Subject
@@ -22,7 +21,7 @@ class LeagueServiceTest extends Specification {
     TeamServiceInterface teamService = Mock(TeamServiceInterface)
 
     @Subject
-    LeagueService leagueService = new LeagueService(leagueRepository, leaguePlayerRepository, slackService, leagueMessages, teamService)
+    DefaultLeagueService leagueService = new DefaultLeagueService(leagueRepository, leaguePlayerRepository, slackService, leagueMessages, teamService)
 
 
     def "should create league"() {

@@ -32,7 +32,7 @@ class TournamentMatchServiceTest extends Specification {
 
 
     @Subject
-    TournamentMatchService tournamentMatchService = new TournamentMatchService(tournamentMatchRepository, matchResultRepository, queueService, tournamentService, slackService)
+    DefaultTournamentMatchService tournamentMatchService = new DefaultTournamentMatchService(tournamentMatchRepository, matchResultRepository, queueService, tournamentService, slackService)
 
 
     def "should create match"() {

@@ -24,23 +24,26 @@ class DefaultTournamentService @Autowired constructor(
     }
 
     override fun pendingCompetitors(league: League, competition: Competition, results: List<MatchResult>): List<Set<LeagueTeam>> {
-        val initial = tournamentRepository.findOneByNameAndCompetition(league.name, competition) ?: throw MissingTournamentException(league.name, competition.label())
 
-        var round : Tournament = initial
-        var resultsLeft : List<MatchResult> = results
-        while(round.hasAllResults(resultsLeft)) {
-            val currentRound = round.filterCurrentResults(resultsLeft)
-            round = round.currentState(currentRound)
-            resultsLeft -= currentRound
-        }
+        val currentState = current(league, competition, results)
+        val round : Tournament = currentState.first
+        val resultsLeft : List<MatchResult> = currentState.second
 
         return round.competitors()
                 .filter { c -> resultsLeft.none { r -> r.hasTeams(c) } }
                 .toList()
     }
 
+    override fun currentResults(league: League, competition: Competition, results: List<MatchResult>): List<MatchResult> {
+        return current(league, competition, results).second
+    }
+
 
     override fun currentState(league: League, competition: Competition, results: List<MatchResult>): Tournament {
+        return current(league, competition, results).first
+    }
+
+    private fun current(league: League, competition: Competition, results: List<MatchResult>) : Pair<Tournament, List<MatchResult>> {
         val initial = tournamentRepository.findOneByNameAndCompetition(league.name, competition) ?: throw MissingTournamentException(league.name, competition.label())
 
         var round : Tournament = initial
@@ -51,7 +54,7 @@ class DefaultTournamentService @Autowired constructor(
             resultsLeft -= currentRound
         }
 
-        return round
+        return Pair(round, resultsLeft)
     }
 
     override fun createTournaments(league: League) {
