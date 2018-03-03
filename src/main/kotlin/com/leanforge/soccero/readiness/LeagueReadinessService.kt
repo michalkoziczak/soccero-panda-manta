@@ -124,7 +124,7 @@ class LeagueReadinessService
                 .joinToString("\n")
     }
 
-    private fun teamKeywordsLabel(team: LeagueTeam, result: MatchResult?) : String {
+    private fun teamLabel(team: LeagueTeam, result: MatchResult?) : String {
         var pre = ""
         var post = ""
         var showReadyIcon = true
@@ -140,7 +140,7 @@ class LeagueReadinessService
             showReadyIcon = false
         }
 
-        return "$pre(" + team.slackIds.map { "${readyIcon(showReadyIcon, it)}<@$it>" }
+        return "$pre(" + team.slackIds.map { "${readyIcon(showReadyIcon, it)}${slackService.getRealNameById(it)}" }
                 .joinToString(" & ") + ")$post"
     }
 
@@ -156,7 +156,7 @@ class LeagueReadinessService
 
     private fun competitorsLine(teams: Set<LeagueTeam>, roundResults: List<MatchResult>) : String {
         val result = roundResults.singleOrNull { it.hasTeams(teams) }
-        return teams.map { teamKeywordsLabel(it, result) }
+        return teams.map { teamLabel(it, result) }
                 .joinToString(" vs ")
     }
 }
