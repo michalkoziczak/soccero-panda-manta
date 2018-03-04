@@ -1,7 +1,6 @@
-package com.leanforge.soccero.match.domain
+package com.leanforge.soccero.result.domain
 
 import com.leanforge.soccero.league.domain.Competition
-import com.leanforge.soccero.league.domain.LeaguePlayer
 import com.leanforge.soccero.team.domain.LeagueTeam
 import org.springframework.data.annotation.Id
 import java.time.Instant

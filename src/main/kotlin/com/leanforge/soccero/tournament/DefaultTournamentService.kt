@@ -3,7 +3,7 @@ package com.leanforge.soccero.tournament
 import com.leanforge.game.slack.SlackService
 import com.leanforge.soccero.league.domain.Competition
 import com.leanforge.soccero.league.domain.League
-import com.leanforge.soccero.match.domain.MatchResult
+import com.leanforge.soccero.result.domain.MatchResult
 import com.leanforge.soccero.team.domain.LeagueTeam
 import com.leanforge.soccero.tournament.domain.Tournament
 import com.leanforge.soccero.tournament.domain.TournamentState
@@ -34,23 +34,39 @@ class DefaultTournamentService @Autowired constructor(
 
 
     override fun currentState(league: League, competition: Competition, results: List<MatchResult>): TournamentState {
+        return allRounds(league, competition, results).last()
+    }
+
+
+    override fun allRounds(league: League, competition: Competition, results: List<MatchResult>): List<TournamentState> {
         val initial = tournamentRepository.findOneByNameAndCompetition(league.name, competition) ?: throw MissingTournamentException(league.name, competition.label())
+
+        val allRounds = mutableListOf<TournamentState>()
 
         var roundNo : Int = 0
         var round : Tournament = initial
         var resultsLeft : List<MatchResult> = results
+
+        val initialPendingCompetitors = round.competitors()
+                .filter { c -> resultsLeft.none { r -> r.hasTeams(c) } }
+                .toList()
+
+        allRounds.add(TournamentState(roundNo, round, results, round.filterCurrentResults(resultsLeft), initialPendingCompetitors))
+
         while(round.hasAllResults(resultsLeft) && round.competitors().isNotEmpty() && resultsLeft.isNotEmpty()) {
             val currentRound = round.filterCurrentResults(resultsLeft)
             round = round.currentState(currentRound)
             resultsLeft -= currentRound
             roundNo++
+
+            val pendingCompetitors = round.competitors()
+                    .filter { c -> resultsLeft.none { r -> r.hasTeams(c) } }
+                    .toList()
+
+            allRounds.add(TournamentState(roundNo, round, results, currentRound, pendingCompetitors))
         }
 
-        val pendingCompetitors = round.competitors()
-                .filter { c -> resultsLeft.none { r -> r.hasTeams(c) } }
-                .toList()
-
-        return TournamentState(roundNo, round, results, resultsLeft, pendingCompetitors)
+        return allRounds
     }
 
     override fun createTournaments(league: League) {

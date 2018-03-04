@@ -1,4 +1,4 @@
-package com.leanforge.soccero.match
+package com.leanforge.soccero.result
 
 import com.leanforge.game.slack.SlackMessage
 import com.leanforge.game.slack.listener.*

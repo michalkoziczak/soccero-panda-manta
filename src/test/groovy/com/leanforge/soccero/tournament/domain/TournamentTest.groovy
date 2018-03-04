@@ -1,7 +1,7 @@
 package com.leanforge.soccero.tournament.domain
 
 import com.leanforge.soccero.league.domain.Competition
-import com.leanforge.soccero.match.domain.MatchResult
+import com.leanforge.soccero.result.domain.MatchResult
 import com.leanforge.soccero.team.domain.LeagueTeam
 import spock.lang.Specification
 

@@ -1,7 +1,6 @@
-package com.leanforge.soccero.match.repo
+package com.leanforge.soccero.result.repo
 
-import com.leanforge.soccero.league.domain.League
-import com.leanforge.soccero.match.domain.TournamentMatch
+import com.leanforge.soccero.result.domain.TournamentMatch
 import org.springframework.data.mongodb.repository.MongoRepository
 import java.util.*
 

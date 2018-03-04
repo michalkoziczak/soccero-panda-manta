@@ -2,8 +2,7 @@ package com.leanforge.soccero.tournament
 
 import com.leanforge.soccero.league.domain.Competition
 import com.leanforge.soccero.league.domain.League
-import com.leanforge.soccero.match.DefaultTournamentMatchService
-import com.leanforge.soccero.match.TournamentMatchService
+import com.leanforge.soccero.result.TournamentMatchService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 

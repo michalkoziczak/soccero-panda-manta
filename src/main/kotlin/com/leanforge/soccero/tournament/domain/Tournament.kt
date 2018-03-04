@@ -1,7 +1,7 @@
 package com.leanforge.soccero.tournament.domain
 
 import com.leanforge.soccero.league.domain.Competition
-import com.leanforge.soccero.match.domain.MatchResult
+import com.leanforge.soccero.result.domain.MatchResult
 import com.leanforge.soccero.team.domain.LeagueTeam
 import org.springframework.data.annotation.Id
 import java.util.*
@@ -63,7 +63,9 @@ data class Tournament(
 
     fun filterCurrentResults(results: List<MatchResult>) : List<MatchResult> {
         return competitors()
-                .map { c -> results.first { r -> r.hasTeams(c) } }
+                .map { c -> results.firstOrNull { r -> r.hasTeams(c) } }
+                .filter { it != null }
+                .map { it ?: throw NullPointerException()}
                 .toList()
     }
 }

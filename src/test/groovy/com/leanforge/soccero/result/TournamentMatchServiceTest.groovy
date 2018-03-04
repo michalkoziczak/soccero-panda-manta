@@ -1,17 +1,17 @@
-package com.leanforge.soccero.match
+package com.leanforge.soccero.result
 
 import com.leanforge.game.slack.SlackMessage
 import com.leanforge.game.slack.SlackService
 import com.leanforge.soccero.league.domain.Competition
 import com.leanforge.soccero.league.domain.League
-import com.leanforge.soccero.match.domain.MatchResult
-import com.leanforge.soccero.match.domain.TournamentMatch
-import com.leanforge.soccero.match.exception.AmbiguousPlayerToTeamMappingException
-import com.leanforge.soccero.match.exception.FrozenResultException
-import com.leanforge.soccero.match.exception.MissingPlayerException
-import com.leanforge.soccero.match.exception.WinnersCollisionException
-import com.leanforge.soccero.match.repo.MatchResultRepository
-import com.leanforge.soccero.match.repo.TournamentMatchRepository
+import com.leanforge.soccero.result.domain.MatchResult
+import com.leanforge.soccero.result.domain.TournamentMatch
+import com.leanforge.soccero.result.exception.AmbiguousPlayerToTeamMappingException
+import com.leanforge.soccero.result.exception.FrozenResultException
+import com.leanforge.soccero.result.exception.MissingPlayerException
+import com.leanforge.soccero.result.exception.WinnersCollisionException
+import com.leanforge.soccero.result.repo.MatchResultRepository
+import com.leanforge.soccero.result.repo.TournamentMatchRepository
 import com.leanforge.soccero.queue.QueueService
 import com.leanforge.soccero.team.domain.LeagueTeam
 import com.leanforge.soccero.tournament.TournamentService
@@ -117,8 +117,8 @@ class TournamentMatchServiceTest extends Specification {
         def tournament = new TournamentMatch('l1', competition, [teamA, teamB].toSet(), channel, 'abc', UUID.randomUUID())
         tournamentMatchRepository.findOneBySlackMessageIdAndSlackChannelId(message.timestamp, message.channelId) >> tournament
         matchResultRepository.findAllByMatchId(tournament.uuid) >> { Stream.of(
-                new com.leanforge.soccero.match.domain.MatchResult('l1', competition, teamA, teamB, UUID.randomUUID(), UUID.randomUUID(), Instant.now()),
-                new com.leanforge.soccero.match.domain.MatchResult('l1', competition, teamB, teamA, UUID.randomUUID(), UUID.randomUUID(), Instant.now())
+                new com.leanforge.soccero.result.domain.MatchResult('l1', competition, teamA, teamB, UUID.randomUUID(), UUID.randomUUID(), Instant.now()),
+                new com.leanforge.soccero.result.domain.MatchResult('l1', competition, teamB, teamA, UUID.randomUUID(), UUID.randomUUID(), Instant.now())
         ) }
 
         slackService.getRealNameById(_) >> { it[0] }

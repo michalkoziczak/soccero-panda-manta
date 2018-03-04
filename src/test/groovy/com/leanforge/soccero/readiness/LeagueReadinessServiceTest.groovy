@@ -5,7 +5,7 @@ import com.leanforge.game.slack.SlackService
 import com.leanforge.soccero.league.LeagueService
 import com.leanforge.soccero.league.domain.Competition
 import com.leanforge.soccero.league.domain.League
-import com.leanforge.soccero.match.TournamentMatchService
+import com.leanforge.soccero.result.TournamentMatchService
 import com.leanforge.soccero.readiness.domain.LeagueStatusMessage
 import com.leanforge.soccero.readiness.repo.LeagueStatusMessageRepository
 import com.leanforge.soccero.team.domain.LeagueTeam

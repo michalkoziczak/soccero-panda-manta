@@ -99,4 +99,16 @@ class ReadinessController
                 .onEach { readinessService.markBusy(it) }
         leagueReadinessService.updateStatusMessagesForAllStartedLeagues()
     }
+
+    @SlackActionListener(actionName = "state", actionValue = "ready")
+    fun handleReadyButton(slackMessage: SlackMessage, @SlackUserId user: String) {
+        readinessService.markReady(slackMessage, user)
+        leagueReadinessService.updateStatusMessagesForAllStartedLeagues()
+    }
+
+    @SlackActionListener(actionName = "state", actionValue = "busy")
+    fun handleBusyButton(slackMessage: SlackMessage, @SlackUserId user: String) {
+        readinessService.markBusy(slackMessage, user)
+        leagueReadinessService.updateStatusMessagesForAllStartedLeagues()
+    }
 }

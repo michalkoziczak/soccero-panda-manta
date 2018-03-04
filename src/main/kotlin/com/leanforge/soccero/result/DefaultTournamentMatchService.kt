@@ -1,18 +1,18 @@
-package com.leanforge.soccero.match
+package com.leanforge.soccero.result
 
 import com.leanforge.game.slack.SlackMessage
 import com.leanforge.game.slack.SlackService
 import com.leanforge.soccero.league.domain.Competition
 import com.leanforge.soccero.league.domain.League
 import com.leanforge.soccero.league.parser.MissingCompetitionException
-import com.leanforge.soccero.match.domain.MatchResult
-import com.leanforge.soccero.match.domain.TournamentMatch
-import com.leanforge.soccero.match.exception.AmbiguousPlayerToTeamMappingException
-import com.leanforge.soccero.match.exception.FrozenResultException
-import com.leanforge.soccero.match.exception.MissingPlayerException
-import com.leanforge.soccero.match.exception.WinnersCollisionException
-import com.leanforge.soccero.match.repo.MatchResultRepository
-import com.leanforge.soccero.match.repo.TournamentMatchRepository
+import com.leanforge.soccero.result.domain.MatchResult
+import com.leanforge.soccero.result.domain.TournamentMatch
+import com.leanforge.soccero.result.exception.AmbiguousPlayerToTeamMappingException
+import com.leanforge.soccero.result.exception.FrozenResultException
+import com.leanforge.soccero.result.exception.MissingPlayerException
+import com.leanforge.soccero.result.exception.WinnersCollisionException
+import com.leanforge.soccero.result.repo.MatchResultRepository
+import com.leanforge.soccero.result.repo.TournamentMatchRepository
 import com.leanforge.soccero.queue.QueueService
 import com.leanforge.soccero.team.domain.LeagueTeam
 import com.leanforge.soccero.tournament.TournamentService

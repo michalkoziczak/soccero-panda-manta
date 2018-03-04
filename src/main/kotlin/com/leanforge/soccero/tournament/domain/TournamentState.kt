@@ -1,6 +1,6 @@
 package com.leanforge.soccero.tournament.domain
 
-import com.leanforge.soccero.match.domain.MatchResult
+import com.leanforge.soccero.result.domain.MatchResult
 import com.leanforge.soccero.team.domain.LeagueTeam
 
 data class TournamentState(
