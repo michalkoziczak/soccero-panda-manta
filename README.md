@@ -1,9 +1,9 @@
 # Panda-Manta
-System for multi-competiton turnaments
+System for multi-competiton tournaments
 
 Used internally in LeanForge
 
-![Panda-Manta](https://github.com/mrdunski/soccero-panda-manta/raw/master/src/main/resources/pandamanta.png)
+![Panda-Manta](https://github.com/mrdunski/soccero-panda-manta/raw/master/src/main/resources/public/pandamanta.png)
 
 ## How to start and test project
 
