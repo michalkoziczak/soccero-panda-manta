@@ -52,7 +52,7 @@ class TournamentTreeService @Autowired constructor(
     }
 
     private fun label(leagueTeam: LeagueTeam, round: Int) : String {
-        return "#${round + 1}\n" + leagueTeam.slackIds.joinToString("\n") { slackService.getRealNameById(it) }
+        return "#${round + 1} " + leagueTeam.slackIds.joinToString(" & ") { slackService.getRealNameById(it) }
     }
 
     private fun assignOpponentAndResult(node: TournamentTreeNode, allRounds: List<TournamentState>, allNodes: MutableList<TournamentTreeNode>) {
