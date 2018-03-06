@@ -1,5 +1,7 @@
 package com.leanforge.soccero.result
 
+import com.leanforge.game.slack.SlackService
+import com.leanforge.soccero.league.LeagueService
 import com.leanforge.soccero.league.domain.Competition
 import com.leanforge.soccero.league.domain.League
 import com.leanforge.soccero.result.domain.MatchResult
@@ -16,11 +18,14 @@ class TournamentTreeServiceTest extends Specification {
 
     TournamentService tournamentService = Mock()
     TournamentMatchService tournamentMatchService = Mock()
+    SlackService slackService = Mock()
+    LeagueService leagueService = Mock()
 
-    TournamentTreeService tournamentTreeService = new TournamentTreeService(tournamentService, tournamentMatchService)
+    TournamentTreeService tournamentTreeService = new TournamentTreeService(tournamentService, tournamentMatchService, slackService, leagueService)
 
     def "should calculate current tree"() {
         given:
+        slackService.getRealNameById(_) >> "real"
         def league = new League('l1')
         def competition = new Competition('c1', 1)
         def teams = [
@@ -57,9 +62,13 @@ class TournamentTreeServiceTest extends Specification {
         tournamentService.allRounds(league, competition, _) >> [round0, round1, round2]
 
         when:
-        def tree = tournamentTreeService.tournamentTree(league, competition)
+        def tree = tournamentTreeService.tournamentTree(league, competition).nodes
 
         then:
+        tree.any {
+            it.team == team('p0') &&
+                    findById(findById(findById(it.child, tree).child, tree).child, tree).team == team('p0')
+        }
         tree.any {
             it.team == team('p0') &&
                     it.round == 0 &&
@@ -98,6 +107,35 @@ class TournamentTreeServiceTest extends Specification {
             it.team == team('p0') &&
                     it.round == 3 &&
                     it.state == TournamentTreeNode.State.PENDING
+        }
+    }
+
+    def "should calculate first round current tree"() {
+        given:
+        slackService.getRealNameById(_) >> "real"
+        def league = new League('l1')
+        def competition = new Competition('c1', 1)
+        def teams = [
+                team('p0'), team('p1'), team('p2'), team('p3'), team('p4')
+        ]
+
+        def round0 = new TournamentState(
+                0,
+                new Tournament(league.name, competition, teams, [], UUID.randomUUID()),
+                [], [], []
+        )
+
+        tournamentService.allRounds(league, competition, _) >> [round0]
+
+        when:
+        def tree = tournamentTreeService.tournamentTree(league, competition).nodes
+
+        then:
+        tree.any {
+            it.team == team('p0') &&
+                    it.round == 0 &&
+                    it.state == TournamentTreeNode.State.PENDING &&
+                    findById(it.child, tree).round == 1
         }
     }
 

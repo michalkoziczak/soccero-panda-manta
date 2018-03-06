@@ -31,6 +31,7 @@ interface LeagueService {
     fun listLeagues(): String
     fun endLeague(name: String)
     fun findAllStarted() : List<League>
+    fun findAllPaused() : List<League>
 }
 
 @Service
@@ -218,4 +219,9 @@ class DefaultLeagueService @Autowired constructor(
                 .filter { it.state == League.LeagueState.STARTED }
                 .toList()
     }
+
+    override fun findAllPaused(): List<League> {
+        return leagueRepository.findAll()
+                .filter { it.state == League.LeagueState.PAUSED }
+                .toList()    }
 }

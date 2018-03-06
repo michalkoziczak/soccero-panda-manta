@@ -63,7 +63,7 @@ class DefaultTournamentService @Autowired constructor(
                     .filter { c -> resultsLeft.none { r -> r.hasTeams(c) } }
                     .toList()
 
-            allRounds.add(TournamentState(roundNo, round, results, currentRound, pendingCompetitors))
+            allRounds.add(TournamentState(roundNo, round, results, round.filterCurrentResults(resultsLeft), pendingCompetitors))
         }
 
         return allRounds

@@ -9,6 +9,7 @@ data class TournamentTreeNode(
         var round: Int = 0,
         var state: State = State.PENDING,
         var child: String? = null,
+        var label: String? = null,
         var id: String = UUID.randomUUID().toString()
 ) {
 

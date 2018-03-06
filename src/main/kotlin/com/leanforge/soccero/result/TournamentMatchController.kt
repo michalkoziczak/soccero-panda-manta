@@ -17,7 +17,8 @@ import org.springframework.beans.factory.annotation.Autowired
 class TournamentMatchController @Autowired constructor(
         val leagueService: DefaultLeagueService,
         val tournamentMatchService: DefaultTournamentMatchService,
-        val leagueReadinessService: LeagueReadinessService
+        val leagueReadinessService: LeagueReadinessService,
+        val tournamentTreeService: TournamentTreeService
 ) : HelpController.CommandManualProvider, HelpController.AdminCommandManualProvider {
 
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -108,7 +109,10 @@ class TournamentMatchController @Autowired constructor(
             slackMessage: SlackMessage
     ) {
         logger.info("{} registers win", winnerId)
-        tournamentMatchService.registerResult(winnerId, slackMessage)
+        val result = tournamentMatchService.registerResult(winnerId, slackMessage)
+        if (result != null) {
+            tournamentTreeService.fireTreeChange(result.leagueName, result.competition)
+        }
         leagueReadinessService.updateStatusMessagesForAllStartedLeagues()
     }
 
@@ -121,7 +125,12 @@ class TournamentMatchController @Autowired constructor(
     ) : SlackReactionResponse {
         logger.info("{} manually registers winners: {}", slackUserId, winners)
         IdsExtractor.extractIds(winners)
-                .onEach { tournamentMatchService.registerResult(it, SlackMessage(thread, channel, null)) }
+                .onEach {
+                    val result = tournamentMatchService.registerResult(it, SlackMessage(thread, channel))
+                    if (result != null) {
+                        tournamentTreeService.fireTreeChange(result.leagueName, result.competition)
+                    }
+                }
         leagueReadinessService.updateStatusMessagesForAllStartedLeagues()
 
         return SlackReactionResponse("ok_hand")
@@ -133,7 +142,10 @@ class TournamentMatchController @Autowired constructor(
             slackMessage: SlackMessage
     ) {
         logger.info("{} removes win", winnerId)
-        tournamentMatchService.removeResult(winnerId, slackMessage)
+        val result = tournamentMatchService.removeResult(winnerId, slackMessage)
+        if (result != null) {
+            tournamentTreeService.fireTreeChange(result.leagueName, result.competition)
+        }
         leagueReadinessService.updateStatusMessagesForAllStartedLeagues()
     }
 

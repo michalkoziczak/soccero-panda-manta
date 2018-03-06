@@ -73,7 +73,7 @@ class DefaultTournamentMatchService @Autowired constructor(
                     "Listen! " +
                             "There is no upcoming match for `${competition.label()}` " +
                             "${teamKeywordsLabel(teamA)} vs ${teamKeywordsLabel(teamB)}." +
-                            "\n:smoke: :smoke: :smoke:")
+                            "\n:smoking: :smoking: :smoking:")
         }
 
         queueService.triggerGameScheduler(competition, setOf(teamA, teamB))
