@@ -5,13 +5,6 @@ import 'react-dropdown/style.css'
 import _ from 'lodash'
 import './App.css';
 
-var w = window,
-d = document,
-e = d.documentElement,
-g = d.getElementsByTagName('body')[0],
-x = w.innerWidth || e.clientWidth || g.clientWidth,
-y = w.innerHeight|| e.clientHeight|| g.clientHeight;
-
 var events = {
     select: function(event) {
         var { nodes, edges } = event;
@@ -23,22 +16,7 @@ class App extends Component {
     constructor(props) {
         super(props);
 
-        var options = {
-             layout: {
-                 hierarchical: {
-                   direction: "LR",
-                   nodeSpacing: 40,
-                   treeSpacing: 50,
-                   levelSeparation: 500
-                 }
-             },
-             edges: {
-                 color: "#000000"
-             },
-             height: y + 'px',
-             width: '100%',
-             physics: {enabled: false}
-        };
+        var options = this.generateGraphOptions()
 
         this.state = {
             selectedGraph: {nodes:[], edges:[]},
@@ -50,6 +28,48 @@ class App extends Component {
 
    componentDidMount() {
        this.attachWebSocket(true);
+       window.onresize = this.handleResize.bind(this);
+       this.handleResize();
+   }
+
+   handleResize() {
+       this.setState({options: this.generateGraphOptions()});
+   }
+
+   generateGraphOptions() {
+     var w = window;
+     var e = document.documentElement;
+     var selector = document.getElementById('graph-selector');
+     var g = document.getElementsByTagName('body')[0];
+
+     var pageX = w.innerWidth || e.clientWidth || g.clientWidth;
+     var pageY = w.innerHeight|| e.clientHeight || g.clientHeight;
+
+     var selectorY = 0;
+
+     if (selector !== null) {
+         selectorY = selector.clientHeight || 0;
+     }
+
+     var x = pageX;
+     var y = pageY - selectorY;
+
+     return {
+          layout: {
+              hierarchical: {
+                direction: "LR",
+                nodeSpacing: 40,
+                treeSpacing: 50,
+                levelSeparation: 500
+              }
+          },
+          edges: {
+              color: "#000000"
+          },
+          height: y + 'px',
+          width: x + 'px',
+          physics: {enabled: false}
+     };
    }
 
    attachWebSocket(init) {
@@ -127,8 +147,8 @@ class App extends Component {
 
     return (
       <div>
-      <ReactDropdown value={selectedCompetition} options={this.state.competitions} placeholder="Select competition" onChange={this._onSelect.bind(this)}></ReactDropdown>
-      <Graph graph={selectedGraph} options={this.state.options} events={events}  />
+      <div id="graph-selector"><ReactDropdown value={selectedCompetition} options={this.state.competitions} placeholder="Select competition" onChange={this._onSelect.bind(this)}></ReactDropdown></div>
+      <div id="graph-view"><Graph graph={selectedGraph} options={this.state.options} events={events}  /></div>
       </div>
 
     );
