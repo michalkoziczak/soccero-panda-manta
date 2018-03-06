@@ -25,13 +25,19 @@ class App extends Component {
 
         var options = {
              layout: {
-                 hierarchical: true
+                 hierarchical: {
+                   direction: "LR",
+                   nodeSpacing: 40,
+                   treeSpacing: 50,
+                   levelSeparation: 500
+                 }
              },
              edges: {
                  color: "#000000"
              },
              height: y + 'px',
-             width: '100%'
+             width: '100%',
+             physics: {enabled: false}
         };
 
         this.state = {
@@ -73,7 +79,13 @@ class App extends Component {
          color = "#ffc600";
         }
 
-        return {id: node.id, label: node.label, level: node.round, color: color};
+        return {
+            id: node.id,
+            label: node.label,
+            level: node.round,
+            color: color,
+            shape: 'box'
+        };
      });
 
     var edges = _.map(tree.nodes, function(node) {
@@ -88,18 +100,9 @@ class App extends Component {
     graphs[tree.leagueName + " " + tree.competition] = graph;
     var competitions = _.keys(graphs);
 
-    var selectedCompetition = this.state.selectedCompetition;
-    var selectedGraph = this.state.selectedGraph;
-    if (!this.state.selectedCompetition) {
-      selectedCompetition = tree.leagueName + " " + tree.competition;
-      selectedGraph = graph;
-    }
-
     this.setState({
         graphs: graphs,
-        competitions: competitions,
-        selectedCompetition: selectedCompetition,
-        selectedGraph: graph
+        competitions: competitions
     });
    }
 
@@ -115,10 +118,17 @@ class App extends Component {
    }
 
   render() {
+    var selectedCompetition = this.state.selectedCompetition;
+    var selectedGraph = this.state.selectedGraph;
+    if (!this.state.selectedCompetition && this.state.competitions.length > 0) {
+      selectedCompetition = this.state.competitions[0];
+      selectedGraph = this.state.graphs[selectedCompetition];
+    }
+
     return (
       <div>
-      <ReactDropdown value={this.state.selectedCompetition} options={this.state.competitions} placeholder="Select competition" onChange={this._onSelect.bind(this)}></ReactDropdown>
-      <Graph graph={this.state.selectedGraph} options={this.state.options} events={events}  />
+      <ReactDropdown value={selectedCompetition} options={this.state.competitions} placeholder="Select competition" onChange={this._onSelect.bind(this)}></ReactDropdown>
+      <Graph graph={selectedGraph} options={this.state.options} events={events}  />
       </div>
 
     );
