@@ -47,7 +47,7 @@ class App extends Component {
    }
 
    attachWebSocket(init) {
-       var websocket = new WebSocket("ws://socceropandamanta-pandunski.coder.dev.kende.pl/tournaments");
+       var websocket = new WebSocket("ws://soccero-panda-manta.dev.kende.pl/tournaments");
        websocket.onmessage = this.handleTournamentChange.bind(this);
        websocket.onclose = this.attachWebSocket.bind(this);
        if (init === true) {
