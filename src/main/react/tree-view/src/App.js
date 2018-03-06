@@ -11,6 +11,8 @@ var events = {
     }
 }
 
+var websocket;
+
 class App extends Component {
 
     constructor(props) {
@@ -24,10 +26,12 @@ class App extends Component {
             competitions: [],
             graphs: {}
         }
+
+        setInterval(this.checkWebSocket.bind(this), 1000)
     }
 
    componentDidMount() {
-       this.attachWebSocket(true);
+       this.attachWebSocket();
        window.onresize = this.handleResize.bind(this);
        this.handleResize();
    }
@@ -60,7 +64,7 @@ class App extends Component {
                 direction: "LR",
                 nodeSpacing: 40,
                 treeSpacing: 50,
-                levelSeparation: 500
+                levelSeparation: 350
               }
           },
           edges: {
@@ -68,20 +72,35 @@ class App extends Component {
           },
           height: y + 'px',
           width: x + 'px',
-          physics: {enabled: false}
+          physics: {enabled: false},
+          interaction: {
+              dragNodes: false,
+              hover: true,
+              selectable: false
+          }
      };
    }
 
-   attachWebSocket(init) {
-       var websocket = new WebSocket("ws://soccero-panda-manta.dev.kende.pl/tournaments");
+   attachWebSocket() {
+       if (websocket) {
+         websocket.close();
+       }
+       websocket = new WebSocket("ws://soccero-panda-manta.dev.kende.pl/tournaments");
        websocket.onmessage = this.handleTournamentChange.bind(this);
        websocket.onclose = this.attachWebSocket.bind(this);
-       if (init === true) {
-           websocket.onopen = function() {
-               websocket.send("init")
-           };
+       websocket.onopen = function() {
+           websocket.send("init")
+       };
+   }
+
+   checkWebSocket() {
+       if (!websocket) {
+           return;
        }
 
+       if (websocket.readyState > 1) {
+           this.attachWebSocket();
+       }
    }
 
    handleTournamentChange(event) {

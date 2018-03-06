@@ -11,7 +11,8 @@
     "vis-react": "^0.3.0"
   },
   "scripts": {
-    "start": "react-scripts build && ./node_modules/.bin/serve -p 8080 ./build",
+    "start": "PORT=8080 BROWSER=none react-scripts start",
+    "startDist": "react-scripts build && ./node_modules/.bin/serve -p 8080 ./build",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
