@@ -149,9 +149,9 @@ class LeagueReadinessService
             return ""
         }
         if (readinessService.isReady(slackId)) {
-            return ":heavy_check_mark:"
+            return ":small_blue_diamond:"
         }
-        return ":x:"
+        return ":white_small_square:"
     }
 
     private fun competitorsLine(teams: Set<LeagueTeam>, roundResults: List<MatchResult>) : String {
