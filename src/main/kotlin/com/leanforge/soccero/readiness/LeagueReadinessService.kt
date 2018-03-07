@@ -149,7 +149,7 @@ class LeagueReadinessService
             return ""
         }
         if (readinessService.isReady(slackId)) {
-            return ":small_blue_diamond:"
+            return ":low_brightness:"
         }
         return ":black_small_square:"
     }
