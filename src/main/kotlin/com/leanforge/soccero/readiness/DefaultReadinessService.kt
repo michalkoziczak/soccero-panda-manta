@@ -66,7 +66,7 @@ class DefaultReadinessService @Autowired constructor(
                 "You can't use buttons, but you can add :heavy_plus_sign: reaction instead.",
                 "#3AA3E3",
                 SlackAction.button("state", "I'm ready!", "ready"),
-                SlackAction.button("state", "Sorry, Busy...", "busy")
+                SlackAction.button("state", "Sorry, I'm busy...", "busy")
         )
         val message = slackService.sendChannelMessage(channelId, "_Remember to update your status_", actions)
         readinessMessageRepository.save(ReadinessMessage(message.timestamp, message.channelId))
