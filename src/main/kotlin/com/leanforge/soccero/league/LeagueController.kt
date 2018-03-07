@@ -112,6 +112,12 @@ open class LeagueController @Autowired constructor(val slackService: SlackServic
         return leagueService.listLeagues()
     }
 
+    @SlackMessageListener(value = "removeCompetition '([^']+)' (.*)")
+    fun removeCompetition(@SlackMessageRegexGroup(1) leagueName: String, @SlackMessageRegexGroup(2) competition: String) : SlackReactionResponse {
+        leagueService.deleteCompetition(leagueName, CompetitionParser.parseSingleDefinition(competition))
+        return SlackReactionResponse("wastebasket")
+    }
+
     @SlackThreadMessageListener("startLeague")
     fun startThisLeague(@SlackChannelId channel: String, @SlackThreadId thread: String, slackMessage: SlackMessage) {
         leagueService.getPendingLeagueNameForThreadId(channel, thread).ifPresent {

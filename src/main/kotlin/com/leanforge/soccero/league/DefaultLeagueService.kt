@@ -32,6 +32,7 @@ interface LeagueService {
     fun endLeague(name: String)
     fun findAllStarted() : List<League>
     fun findAllPaused() : List<League>
+    fun deleteCompetition(leagueName: String, competition: Competition)
 }
 
 @Service
@@ -41,6 +42,15 @@ class DefaultLeagueService @Autowired constructor(
         private val slackService: SlackService,
         private val leagueMessages: LeagueMessages,
         private val teamService: TeamServiceInterface) : LeagueService {
+
+    override fun deleteCompetition(leagueName: String, competition: Competition) {
+        val league = leagueRepository.findOne(leagueName) ?: throw IllegalArgumentException("There is no league $leagueName")
+        if (!league.competitions.contains(competition)) {
+            throw IllegalArgumentException("There is no competition ${competition.label()} in $leagueName")
+        }
+        league.competitions = league.competitions.minus(competition)
+        leagueRepository.save(league)
+    }
 
     override fun createLeague(initMessage: SlackMessage, name: String, competitions: Set<Competition>) {
         requireLeagueNotPresent(name)
