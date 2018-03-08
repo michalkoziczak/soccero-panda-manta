@@ -139,7 +139,7 @@ class LeagueReadinessService
     private fun statusMessage(round: TournamentState, playersReady: Set<String>, hash: String) : String {
         return ":trophy: #${round.round + 1} `${round.tournament.competition.label()}`\n" +
                 listedCompetitors(round.tournament.competitors(), round.currentRoundResults, playersReady) +
-                "\n\nhttp://soccero-panda-manta.dev.kende.pl/#$hash"
+                "\n\nTree view: http://soccero-panda-manta.dev.kende.pl/#$hash"
     }
 
     private fun listedCompetitors(competitors: List<Set<LeagueTeam>>, roundResults: List<MatchResult>, playersReady: Set<String>) : String {
