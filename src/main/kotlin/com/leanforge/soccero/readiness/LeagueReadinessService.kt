@@ -98,9 +98,28 @@ class LeagueReadinessService
 
         val allResults = tournamentMatchService.getResults(league.name, competition)
         val currentRound = tournamentService.currentState(league, competition, allResults)
+        val playersReady = readinessService.readyPlayers()
 
-        val statusMessage = statusMessage(currentRound)
+        val statusMessage = statusMessage(currentRound, playersReady)
         slackService.updateMessage(slackMessage, statusMessage)
+        sendCommercials(currentRound, playersReady);
+    }
+
+    private fun sendCommercials(currentRound: TournamentState, playersReady: Set<String>) {
+        currentRound.pendingCompetitors.forEach { comp ->
+            comp.forEach {
+                sendCommercials(it, playersReady)
+            }
+        }
+    }
+
+    private fun sendCommercials(team: LeagueTeam, playersReady: Set<String>) {
+        val readyPlayers = team.slackIds.count { playersReady.contains(it) }
+        if ( readyPlayers > 0 && readyPlayers < team.size()) {
+            team.slackIds
+                    .filter { !playersReady.contains(it) }
+                    .forEach { readinessService.trySendMateReadinessMessage(it) }
+        }
     }
 
 
@@ -108,23 +127,23 @@ class LeagueReadinessService
         val allResults = tournamentMatchService.getResults(league.name, competition)
         val currentRound = tournamentService.currentState(league, competition, allResults)
 
-        val statusMessage = statusMessage(currentRound)
+        val statusMessage = statusMessage(currentRound, emptySet())
         val msg = slackService.sendChannelMessage(league.slackChannelId, statusMessage)
         leagueStatusMessageRepository.save(LeagueStatusMessage(msg.timestamp, msg.channelId, league.name, competition))
     }
 
-    private fun statusMessage(round: TournamentState) : String {
+    private fun statusMessage(round: TournamentState, playersReady: Set<String>) : String {
         return ":trophy: #${round.round + 1} `${round.tournament.competition.label()}`\n>>>" +
-                listedCompetitors(round.tournament.competitors(), round.currentRoundResults)
+                listedCompetitors(round.tournament.competitors(), round.currentRoundResults, playersReady)
     }
 
-    private fun listedCompetitors(competitors: List<Set<LeagueTeam>>, roundResults: List<MatchResult>) : String {
+    private fun listedCompetitors(competitors: List<Set<LeagueTeam>>, roundResults: List<MatchResult>, playersReady: Set<String>) : String {
         return competitors
-                .mapIndexed { index, teams -> "${index + 1}. ${competitorsLine(teams, roundResults)}" }
+                .mapIndexed { index, teams -> "${index + 1}. ${competitorsLine(teams, roundResults, playersReady)}" }
                 .joinToString("\n")
     }
 
-    private fun teamLabel(team: LeagueTeam, result: MatchResult?) : String {
+    private fun teamLabel(team: LeagueTeam, result: MatchResult?, playersReady: Set<String>) : String {
         var pre = ""
         var post = ""
         var showReadyIcon = true
@@ -140,23 +159,23 @@ class LeagueReadinessService
             showReadyIcon = false
         }
 
-        return "$pre(" + team.slackIds.map { "${readyIcon(showReadyIcon, it)}${slackService.getRealNameById(it)}" }
+        return "$pre(" + team.slackIds.map { "${readyIcon(showReadyIcon, it, playersReady)}${slackService.getRealNameById(it)}" }
                 .joinToString(" & ") + ")$post"
     }
 
-    private fun readyIcon(show: Boolean, slackId: String) : String {
+    private fun readyIcon(show: Boolean, slackId: String, playersReady: Set<String>) : String {
         if (!show) {
             return ""
         }
-        if (readinessService.isReady(slackId)) {
+        if (playersReady.contains(slackId)) {
             return ":low_brightness:"
         }
         return ":black_small_square:"
     }
 
-    private fun competitorsLine(teams: Set<LeagueTeam>, roundResults: List<MatchResult>) : String {
+    private fun competitorsLine(teams: Set<LeagueTeam>, roundResults: List<MatchResult>, playersReady: Set<String>) : String {
         val result = roundResults.singleOrNull { it.hasTeams(teams) }
-        return teams.map { teamLabel(it, result) }
+        return teams.map { teamLabel(it, result, playersReady) }
                 .joinToString(" vs ")
     }
 }

@@ -46,7 +46,7 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-websocket:1.+'
     compile 'org.springframework.boot:spring-boot-starter-data-mongodb:1.+'
     compile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:+'
-    compile 'mrdunski:spring-slack:29'
+    compile 'mrdunski:spring-slack:30'
 
     testCompile "org.codehaus.groovy:groovy-all:2.4.10"
     testCompile "org.spockframework:spock-core:1.1-groovy-2.4"
@@ -140,4 +140,40 @@ task('dockerPushLatest', type: Exec, dependsOn: 'dockerTagLatest') {
 task('dockerPushProjectVersion', type: Exec, dependsOn: 'dockerBuildImage') {
     executable 'docker'
     args 'push', "mrdunski/$rootProject.name:${project.version}"
+}
+
+task('npmInstall', type: Exec) {
+    group 'ui'
+    commandLine 'npm'
+    args 'install'
+    workingDir 'src/main/react/tree-view'
+}
+
+task('runUi', type: Exec, dependsOn: 'npmInstall') {
+    group 'ui'
+    commandLine 'npm'
+    args 'start'
+    workingDir 'src/main/react/tree-view'
+}
+
+task('cleanUi', type: Delete) {
+    group 'ui'
+    delete 'src/main/resources/public'
+}
+
+task('compileUi', type: Exec, dependsOn: 'npmInstall') {
+    group 'ui'
+    commandLine 'npm'
+    args 'run', 'build'
+    workingDir 'src/main/react/tree-view'
+}
+
+task('copyUi', type: Copy, dependsOn: ['cleanUi', 'compileUi']) {
+    group 'ui'
+    from 'src/main/react/tree-view/build'
+    into 'src/main/resources/public'
+}
+
+task('prepareUi', dependsOn: ['compileUi', 'copyUi']) {
+    group 'ui'
 }

@@ -8,8 +8,11 @@ import com.leanforge.soccero.readiness.domain.Readiness
 import com.leanforge.soccero.readiness.domain.ReadinessMessage
 import com.leanforge.soccero.readiness.repo.ReadinessMessageRepository
 import com.leanforge.soccero.readiness.repo.ReadinessRepository
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 interface ReadinessService {
     fun markReady(slackMessage: SlackMessage, slackId: String)
@@ -18,6 +21,8 @@ interface ReadinessService {
     fun markBusy(slackId: String)
     fun isReady(slackId: String): Boolean
     fun sendGenericReadinessMessage(channelId: String)
+    fun trySendPersonalReadinessMessage(userId: String)
+    fun trySendMateReadinessMessage(userId: String)
     fun markEveryoneBusy()
     fun readyPlayers() : Set<String>
 }
@@ -28,6 +33,7 @@ class DefaultReadinessService @Autowired constructor(
         private val readinessMessageRepository: ReadinessMessageRepository,
         private val slackService: SlackService) : ReadinessService {
 
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     override fun markReady(slackMessage: SlackMessage, slackId: String) {
         if (!isReadinessMessage(slackMessage)) {
@@ -35,6 +41,7 @@ class DefaultReadinessService @Autowired constructor(
         }
 
         markReady(slackId)
+        trySendPersonalReadinessMessage(slackId)
     }
 
     override fun markBusy(slackMessage: SlackMessage, slackId: String) {
@@ -60,16 +67,30 @@ class DefaultReadinessService @Autowired constructor(
     }
 
     override fun sendGenericReadinessMessage(channelId: String) {
-        val actions = SlackActions(
-                "Your status",
-                "Are you ready to play a game?",
-                "You can't use buttons, but you can add :heavy_plus_sign: reaction instead.",
-                "#3AA3E3",
-                SlackAction.button("state", "I'm ready!", "ready"),
-                SlackAction.button("state", "Sorry, I'm busy...", "busy")
-        )
-        val message = slackService.sendChannelMessage(channelId, "_Remember to update your status_", actions)
+        val message = slackService.sendChannelMessage(channelId, "_Remember to update your status_", readyActions())
         readinessMessageRepository.save(ReadinessMessage(message.timestamp, message.channelId))
+    }
+
+    override fun trySendPersonalReadinessMessage(userId: String) {
+        trySendPersonalReadinessMessage(userId, "You are ready. Great job. In case this is no longer true, click `busy` button:")
+    }
+
+    override fun trySendMateReadinessMessage(userId: String) {
+        trySendPersonalReadinessMessage(userId, "Your mate is ready. Maybe you can join him?")
+    }
+
+    private fun trySendPersonalReadinessMessage(userId: String, msg: String) {
+        try {
+            val lastMessage = readinessMessageRepository.findTopByUserIdOrderByCreatedOnDesc(userId)
+            val isOldEnough = lastMessage?.createdOn?.isBefore(Instant.now().minus(24, ChronoUnit.HOURS)) ?: true
+            if (!isOldEnough) {
+                return;
+            }
+            val message = slackService.sendDirectMessage(userId, msg, readyActions())
+            readinessMessageRepository.save(ReadinessMessage(message.timestamp, message.channelId, userId))
+        } catch (e: Exception) {
+            logger.error("Can't send a message", e)
+        }
     }
 
     private fun isReadinessMessage(message: SlackMessage): Boolean {
@@ -91,5 +112,16 @@ class DefaultReadinessService @Autowired constructor(
                 .findAllByState(Readiness.State.READY)
                 .map { it.slackId }
                 .toSet()
+    }
+
+    private fun readyActions(): SlackActions {
+        return SlackActions(
+                "Your status",
+                "Are you ready to play a game?",
+                "You can't use buttons, but you can add :heavy_plus_sign: reaction instead.",
+                "#3AA3E3",
+                SlackAction.button("state", "I'm ready!", "ready"),
+                SlackAction.button("state", "Sorry, I'm busy...", "busy")
+        )
     }
 }

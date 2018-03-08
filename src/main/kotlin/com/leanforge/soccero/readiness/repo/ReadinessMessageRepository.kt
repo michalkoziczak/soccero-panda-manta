@@ -10,4 +10,5 @@ import java.util.*
 interface ReadinessMessageRepository : MongoRepository<ReadinessMessage, UUID> {
 
     fun existsBySlackChannelIdAndSlackMessageId(slackChannelId: String, slackMessageId: String) : Boolean
+    fun findTopByUserIdOrderByCreatedOnDesc(userId: String): ReadinessMessage?
 }
