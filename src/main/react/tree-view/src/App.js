@@ -24,7 +24,8 @@ class App extends Component {
             selectedGraph: {nodes:[], edges:[]},
             options: options,
             competitions: [],
-            graphs: {}
+            graphs: {},
+            selectedCompetition: window.location.hash.substring(1).replace(/%_/gi, " ")
         }
 
         setInterval(this.checkWebSocket.bind(this), 1000)
@@ -143,10 +144,15 @@ class App extends Component {
         graphs: graphs,
         competitions: competitions
     });
+
+    if (this.state.selectedCompetition === tree.leagueName + " " + tree.competition) {
+      this.setState({selectedGraph: graph})
+    }
    }
 
    _onSelect(e) {
      var graphs = this.state.graphs || {};
+     window.location.hash = e.value.replace(/ /gi, '%_');
      var graph = graphs[e.value];
      if (!graph) {
        this.setState({selectedGraph: {nodes:[], edges:[]}});
@@ -162,6 +168,10 @@ class App extends Component {
     if (!this.state.selectedCompetition && this.state.competitions.length > 0) {
       selectedCompetition = this.state.competitions[0];
       selectedGraph = this.state.graphs[selectedCompetition];
+    }
+
+    if (this.state.selectedCompetition && this.state.graphs[selectedCompetition]) {
+        selectedGraph = this.state.graphs[selectedCompetition];
     }
 
     return (

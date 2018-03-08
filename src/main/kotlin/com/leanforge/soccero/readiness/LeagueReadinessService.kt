@@ -100,7 +100,7 @@ class LeagueReadinessService
         val currentRound = tournamentService.currentState(league, competition, allResults)
         val playersReady = readinessService.readyPlayers()
 
-        val statusMessage = statusMessage(currentRound, playersReady)
+        val statusMessage = statusMessage(currentRound, playersReady, hash(league, competition))
         slackService.updateMessage(slackMessage, statusMessage)
         sendCommercials(currentRound, playersReady);
     }
@@ -127,19 +127,24 @@ class LeagueReadinessService
         val allResults = tournamentMatchService.getResults(league.name, competition)
         val currentRound = tournamentService.currentState(league, competition, allResults)
 
-        val statusMessage = statusMessage(currentRound, emptySet())
+        val statusMessage = statusMessage(currentRound, emptySet(), hash(league, competition))
         val msg = slackService.sendChannelMessage(league.slackChannelId, statusMessage)
         leagueStatusMessageRepository.save(LeagueStatusMessage(msg.timestamp, msg.channelId, league.name, competition))
     }
 
-    private fun statusMessage(round: TournamentState, playersReady: Set<String>) : String {
-        return ":trophy: #${round.round + 1} `${round.tournament.competition.label()}`\n>>>" +
-                listedCompetitors(round.tournament.competitors(), round.currentRoundResults, playersReady)
+    private fun hash(league: League, competition: Competition): String {
+        return "${league.name} ${competition.label()}".replace(" ", "%_");
+    }
+
+    private fun statusMessage(round: TournamentState, playersReady: Set<String>, hash: String) : String {
+        return ":trophy: #${round.round + 1} `${round.tournament.competition.label()}`\n" +
+                listedCompetitors(round.tournament.competitors(), round.currentRoundResults, playersReady) +
+                "\n\nhttp://soccero-panda-manta.dev.kende.pl/#$hash"
     }
 
     private fun listedCompetitors(competitors: List<Set<LeagueTeam>>, roundResults: List<MatchResult>, playersReady: Set<String>) : String {
         return competitors
-                .mapIndexed { index, teams -> "${index + 1}. ${competitorsLine(teams, roundResults, playersReady)}" }
+                .mapIndexed { index, teams -> "> ${index + 1}. ${competitorsLine(teams, roundResults, playersReady)}" }
                 .joinToString("\n")
     }
 
