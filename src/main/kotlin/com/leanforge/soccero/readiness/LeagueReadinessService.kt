@@ -113,7 +113,9 @@ class LeagueReadinessService
             slackService.updateMessage(msg.toSlackMessage(), "_This message is outdated_")
         }
 
-        leagueStatusMessageRepository.delete(messages)
+        if (messages.isNotEmpty()) {
+            leagueStatusMessageRepository.delete(messages)
+        }
     }
 
     private fun sendCommercials(currentRound: TournamentState, playersReady: Set<String>) {

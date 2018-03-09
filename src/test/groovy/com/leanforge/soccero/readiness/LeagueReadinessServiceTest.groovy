@@ -65,6 +65,7 @@ class LeagueReadinessServiceTest extends Specification {
         leagueService.findAllStarted() >> [league]
         tournamentService.currentState(league, _, _) >> new TournamentState(0, tournament, [], [], [])
         tournamentService.pendingCompetitors(league, _, _) >> []
+        leagueStatusMessageRepository.findAll() >> []
 
         def msg1 = new SlackMessage('t1', 'ch0', null)
         def msg2 = new SlackMessage('t2', 'ch0', null)
@@ -90,6 +91,7 @@ class LeagueReadinessServiceTest extends Specification {
         leagueService.findAllStarted() >> [league]
         tournamentService.currentState(league, _, _) >> new TournamentState(0, tournament, [], [], [])
         tournamentService.pendingCompetitors(league, _, _) >> []
+        leagueStatusMessageRepository.findAll() >> []
 
         def msg1 = new SlackMessage('t1', 'ch0', null)
         def msg2 = new SlackMessage('t2', 'ch0', null)
