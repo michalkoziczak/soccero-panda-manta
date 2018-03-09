@@ -25,7 +25,7 @@ class App extends Component {
             options: options,
             competitions: [],
             graphs: {},
-            selectedCompetition: window.location.hash.substring(1).replace(/%_/gi, " ")
+            selectedCompetition: window.location.hash.substring(1).replace(/_!_/gi, " ")
         }
 
         setInterval(this.checkWebSocket.bind(this), 1000)
@@ -152,7 +152,7 @@ class App extends Component {
 
    _onSelect(e) {
      var graphs = this.state.graphs || {};
-     window.location.hash = e.value.replace(/ /gi, '%_');
+     window.location.hash = e.value.replace(/ /gi, '_!_');
      var graph = graphs[e.value];
      if (!graph) {
        this.setState({selectedGraph: {nodes:[], edges:[]}});

@@ -72,6 +72,7 @@ class LeagueReadinessService
 
     fun createNewStatusMessageForAllStartedLeagues() {
         markEveryoneBusy()
+        invalidateAllStatusMessages()
         leagueService.findAllStarted()
                 .onEach { league ->
                     league.competitions
@@ -105,6 +106,16 @@ class LeagueReadinessService
         sendCommercials(currentRound, playersReady);
     }
 
+    private fun invalidateAllStatusMessages() {
+        val messages = leagueStatusMessageRepository.findAll()
+
+        messages.onEach { msg ->
+            slackService.updateMessage(msg.toSlackMessage(), "_This message is outdated_")
+        }
+
+        leagueStatusMessageRepository.delete(messages)
+    }
+
     private fun sendCommercials(currentRound: TournamentState, playersReady: Set<String>) {
         currentRound.pendingCompetitors.forEach { comp ->
             comp.forEach {
@@ -133,7 +144,7 @@ class LeagueReadinessService
     }
 
     private fun hash(league: League, competition: Competition): String {
-        return "${league.name} ${competition.label()}".replace(" ", "%_");
+        return "${league.name} ${competition.label()}".replace(" ", "_!_");
     }
 
     private fun statusMessage(round: TournamentState, playersReady: Set<String>, hash: String) : String {

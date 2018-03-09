@@ -67,7 +67,7 @@ class DefaultReadinessService @Autowired constructor(
     }
 
     override fun sendGenericReadinessMessage(channelId: String) {
-        val message = slackService.sendChannelMessage(channelId, "_Remember to update your status_", readyActions())
+        val message = slackService.sendChannelMessage(channelId, "_Remember to update your status_", readyActions("state"))
         readinessMessageRepository.save(ReadinessMessage(message.timestamp, message.channelId))
     }
 
@@ -86,7 +86,7 @@ class DefaultReadinessService @Autowired constructor(
             if (!isOldEnough) {
                 return;
             }
-            val message = slackService.sendDirectMessage(userId, msg, readyActions())
+            val message = slackService.sendDirectMessage(userId, msg, readyActions("personalState"))
             readinessMessageRepository.save(ReadinessMessage(message.timestamp, message.channelId, userId))
         } catch (e: Exception) {
             logger.error("Can't send a message", e)
@@ -114,14 +114,14 @@ class DefaultReadinessService @Autowired constructor(
                 .toSet()
     }
 
-    private fun readyActions(): SlackActions {
+    private fun readyActions(actionName: String): SlackActions {
         return SlackActions(
                 "Your status",
                 "Are you ready to play a game?",
                 "You can't use buttons, but you can add :heavy_plus_sign: reaction instead.",
                 "#3AA3E3",
-                SlackAction.button("state", "I'm ready!", "ready"),
-                SlackAction.button("state", "Sorry, I'm busy...", "busy")
+                SlackAction.button(actionName, "I'm ready!", "ready"),
+                SlackAction.button(actionName, "Sorry, I'm busy...", "busy")
         )
     }
 }
