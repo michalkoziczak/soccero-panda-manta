@@ -29,6 +29,7 @@ interface TournamentMatchService {
     fun removeResult(winningSlackId: String, slackMessage: SlackMessage) : MatchResult?
     fun listResults(leagueName: String, competition: Competition) : String
     fun getResults(leagueName: String, competition: Competition) : List<MatchResult>
+    fun listAllResults(league: League): String
 }
 
 @Service
@@ -141,9 +142,15 @@ class DefaultTournamentMatchService @Autowired constructor(
     }
 
     override fun listResults(leagueName: String, competition: Competition) : String {
-        return "Results:\n>>>" + getResults(leagueName, competition)
-                .mapIndexed { index, it -> "${index + 1}. " + matchLineMessage(it.winner, it.loser, it.competition, it.winner) }
+        return "Results of ${competition.label()}:\n" + getResults(leagueName, competition)
+                .mapIndexed { index, it -> "> ${index + 1}. " + matchLineMessage(it.winner, it.loser, it.competition, it.winner) }
                 .joinToString("\n")
+    }
+
+    override fun listAllResults(league: League) : String {
+        return league.competitions
+                .map { listResults(league.name, it) }
+                .joinToString("\n\n")
     }
 
     override fun getResults(leagueName: String, competition: Competition) : List<MatchResult> {

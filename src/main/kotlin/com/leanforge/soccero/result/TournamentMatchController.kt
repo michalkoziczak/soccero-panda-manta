@@ -156,4 +156,12 @@ class TournamentMatchController @Autowired constructor(
                     ) : String {
         return tournamentMatchService.listResults(leagueName, CompetitionParser.parseSingleDefinition(competitionLabel))
     }
+
+    @SlackMessageListener("listResults '(.*)'")
+    fun listResults(
+            @SlackMessageRegexGroup(1) leagueName : String
+    ) : String {
+        val league = leagueService.findStartedLeagueByName(leagueName) ?: return "No such league"
+        return tournamentMatchService.listAllResults(league)
+    }
 }
