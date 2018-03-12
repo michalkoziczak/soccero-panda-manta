@@ -54,7 +54,7 @@ class DefaultTournamentMatchService @Autowired constructor(
         val excludedPlayer = players.firstOrNull { !playingPlayers.contains(it) }
 
         if (excludedPlayer != null) {
-            throw MissingPlayerException(excludedPlayer, league.name, competition.label())
+            throw MissingPlayerException(excludedPlayer)
         }
 
         createMatch(league, competition, teams[0], teams[1])
@@ -147,29 +147,29 @@ class DefaultTournamentMatchService @Autowired constructor(
     }
 
     override fun getResults(leagueName: String, competition: Competition) : List<MatchResult> {
-        val finalResults = mutableListOf<MatchResult>()
-        val duplicatedResults = mutableListOf<MatchResult>()
-        matchResultRepository.findAllByLeagueNameAndCompetition(leagueName, competition)
-                .sorted(Comparator.comparing({ it : MatchResult -> it.createDate }))
-                .forEachOrdered { result ->
-                    if (finalResults.all({it.uuid != result.uuid})) {
-                        finalResults.add(result)
-                    } else {
-                        duplicatedResults.add(result)
-                    }
+
+        val results = matchResultRepository.findAllByLeagueNameAndCompetition(leagueName, competition)
+                .collect(Collectors.toList())
+        val matches = results.map { it.matchId }
+                .distinct()
+                .toList()
+        val nonConflictingMatches = matches
+                .filter {
+                    results.filter { r -> r.matchId == it }
+                            .map { r -> r.winner }
+                            .distinct()
+                            .count() == 1
                 }
 
-        duplicatedResults.onEach { duplicated ->
-            finalResults.removeIf { final -> final.uuid == duplicated.uuid && final.winner != duplicated.winner }
-        }
-
-        return finalResults.toList()
+        return nonConflictingMatches
+                .map { m -> results.first { it.matchId == m } }
+                .toList()
     }
 
     private fun findWinningTeam(slackId: String, match: TournamentMatch) : LeagueTeam {
         return match.competitors.find {
             it.slackIds.contains(slackId)
-        } ?: throw MissingPlayerException(slackId, match.leagueName, match.competition.label())
+        } ?: throw MissingPlayerException(slackId)
     }
 
     private fun createMatchMessage(teamA: LeagueTeam, teamB: LeagueTeam, competition: Competition, winner: LeagueTeam?) : String {

@@ -173,4 +173,28 @@ class TournamentMatchServiceTest extends Specification {
         0 * matchResultRepository.save(_)
         thrown(FrozenResultException)
     }
+
+    def "should remove duplicated entries"() {
+        given:
+        def leagueName = 'l1'
+        def competition = new Competition("c", 1)
+        UUID match1 = UUID.randomUUID()
+        UUID match2 = UUID.randomUUID()
+        LeagueTeam t1 = new LeagueTeam(['p1'].toSet())
+        LeagueTeam t2 = new LeagueTeam(['p2'].toSet())
+        LeagueTeam t3 = new LeagueTeam(['p3'].toSet())
+        matchResultRepository.findAllByLeagueNameAndCompetition(leagueName, competition) >> {
+            [
+                    new MatchResult(leagueName, competition, t2, t1, match1, UUID.randomUUID(), Instant.now()),
+                    new MatchResult(leagueName, competition, t2, t1, match1, UUID.randomUUID(), Instant.now()),
+                    new MatchResult(leagueName, competition, t3, t1, match2, UUID.randomUUID(), Instant.now())
+            ].stream()
+        }
+
+        when:
+        def results = tournamentMatchService.getResults(leagueName, competition)
+
+        then:
+        results.size() == 2
+    }
 }
