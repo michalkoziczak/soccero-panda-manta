@@ -144,6 +144,19 @@ class TournamentServiceTest extends Specification {
 
         tournamentRepository.findOneByNameAndCompetition('test', compA) >> new Tournament('test', compA, teams, [], UUID.randomUUID())
 
+        /*
+         *   [r1]     [r2]     [r3]
+         *   (0) - -- (0) -\
+         *   (1) -/        |
+         *   (2) -\        |
+         *   (3) - -- (3) - -- (3)
+         *   (4) ---- (4) -\
+         *            (1')- -- (1')
+         *            (2')---- (2')
+         *                     (0')
+         *                     (4')
+         */
+
         def initialResults = []
 
         def endOfRound1 = initialResults + [
@@ -180,8 +193,8 @@ class TournamentServiceTest extends Specification {
                 [teams[4], teams[1]].toSet()
         ]
         round3.tournament.competitors() == [
-                [teams[1], teams[3]].toSet(),
-                [teams[0], teams[2]].toSet()
+                [teams[1], teams[2]].toSet(),
+                [teams[0], teams[4]].toSet()
         ]
 
         // pending competitors in current round
@@ -197,8 +210,8 @@ class TournamentServiceTest extends Specification {
                 [teams[4], teams[1]].toSet()
         ]
         round3.pendingCompetitors == [
-                [teams[1], teams[3]].toSet(),
-                [teams[0], teams[2]].toSet()
+                [teams[1], teams[2]].toSet(),
+                [teams[0], teams[4]].toSet()
         ]
     }
 
