@@ -15,6 +15,6 @@ data class TournamentTreeNode(
 
 
     enum class State {
-        WON, LOST, PENDING, BLOCKED
+        WON, LOST, ELIMINATED, PENDING, BLOCKED
     }
 }

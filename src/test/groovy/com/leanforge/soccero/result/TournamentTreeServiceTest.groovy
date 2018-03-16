@@ -53,9 +53,9 @@ class TournamentTreeServiceTest extends Specification {
                 2,
                 new Tournament(league.name, competition, [teams[0], teams[4]], [teams[1], teams[2], teams[3]], UUID.randomUUID()),
                 [], [
-                result(teams[0], teams[4])
+                result(teams[1], teams[2])
         ], [
-                [teams[1], teams[2]].toSet()
+                [teams[0], teams[4]].toSet()
         ]
         )
 
@@ -67,7 +67,7 @@ class TournamentTreeServiceTest extends Specification {
         then:
         tree.any {
             it.team == team('p0') &&
-                    findById(findById(findById(it.child, tree).child, tree).child, tree).team == team('p0')
+                    findById(findById(it.child, tree).child, tree).team == team('p0')
         }
         tree.any {
             it.team == team('p0') &&
@@ -75,6 +75,11 @@ class TournamentTreeServiceTest extends Specification {
                     it.state == TournamentTreeNode.State.WON &&
                     findById(it.child, tree).team == team('p0') &&
                     findById(it.child, tree).round == 1
+        }
+        tree.any {
+            it.team == team('p1') &&
+                    it.round == 0 &&
+                    it.state == TournamentTreeNode.State.LOST
         }
         tree.any {
             it.team == team('p4') &&
@@ -85,28 +90,18 @@ class TournamentTreeServiceTest extends Specification {
         }
         tree.any {
             it.team == team('p4') &&
-                    it.round == 2 &&
-                    it.state == TournamentTreeNode.State.LOST
-        }
-        tree.any {
-            it.team == team('p4') &&
                     it.round == 0 &&
                     it.state == TournamentTreeNode.State.BLOCKED
         }
         tree.any {
             it.team == team('p1') &&
                     it.round == 2 &&
-                    it.state == TournamentTreeNode.State.PENDING
+                    it.state == TournamentTreeNode.State.WON
         }
         tree.any {
             it.team == team('p2') &&
                     it.round == 2 &&
-                    it.state == TournamentTreeNode.State.PENDING
-        }
-        tree.any {
-            it.team == team('p0') &&
-                    it.round == 3 &&
-                    it.state == TournamentTreeNode.State.PENDING
+                    it.state == TournamentTreeNode.State.ELIMINATED
         }
     }
 

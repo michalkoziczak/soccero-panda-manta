@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import java.util.logging.Logger
 
 @Service
 class TournamentTreeService @Autowired constructor(
@@ -41,7 +40,7 @@ class TournamentTreeService @Autowired constructor(
         val allNodes = allRounds.flatMap { toNodes(it) }
                 .toMutableList()
 
-       allNodes.toList().onEach { assignOpponentAndResult(it, allRounds, allNodes) }
+       allNodes.toList().onEach { assignOpponentAndResult(it, allRounds, allNodes, allRounds[it.round]) }
 
         return TournamentTree(league.name, competition.label(), allNodes)
     }
@@ -55,7 +54,7 @@ class TournamentTreeService @Autowired constructor(
         return "#${round + 1} " + leagueTeam.slackIds.joinToString(" & ") { slackService.getRealNameById(it) }
     }
 
-    private fun assignOpponentAndResult(node: TournamentTreeNode, allRounds: List<TournamentState>, allNodes: MutableList<TournamentTreeNode>) {
+    private fun assignOpponentAndResult(node: TournamentTreeNode, allRounds: List<TournamentState>, allNodes: MutableList<TournamentTreeNode>, tournamentState: TournamentState) {
         val state = allRounds.single { it.round == node.round }
         val competitors = state.tournament.competitors().firstOrNull { it.contains(node.team) }
         if (competitors == null) {
@@ -92,8 +91,12 @@ class TournamentTreeService @Autowired constructor(
 
         node.child = nextRound.id
 
-        if (result.loser == node.team) {
+        if (result.loser == node.team && tournamentState.tournament.winners.contains(result.loser)) {
             node.state = TournamentTreeNode.State.LOST
+        }
+
+        if (result.loser == node.team && tournamentState.tournament.losers.contains(result.loser)) {
+            node.state = TournamentTreeNode.State.ELIMINATED
         }
 
         if (result.winner == node.team) {
