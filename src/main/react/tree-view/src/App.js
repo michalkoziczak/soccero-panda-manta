@@ -6,9 +6,6 @@ import _ from 'lodash'
 import './App.css';
 
 var events = {
-    select: function(event) {
-        var { nodes, edges } = event;
-    }
 }
 
 var websocket;
@@ -18,14 +15,17 @@ class App extends Component {
     constructor(props) {
         super(props);
 
-        var options = this.generateGraphOptions()
+        var options = this.generateGraphOptions();
+        var size = this.detectSize();
 
         this.state = {
             selectedGraph: {nodes:[], edges:[]},
             options: options,
             competitions: [],
             graphs: {},
-            selectedCompetition: window.location.hash.substring(1).replace(/_!_/gi, " ")
+            selectedCompetition: window.location.hash.substring(1).replace(/_!_/gi, " "),
+            x: size.x,
+            y: size.y
         }
 
         setInterval(this.checkWebSocket.bind(this), 1000)
@@ -41,38 +41,44 @@ class App extends Component {
        this.setState({options: this.generateGraphOptions()});
    }
 
-   generateGraphOptions() {
+   detectSize() {
      var w = window;
-     var e = document.documentElement;
-     var selector = document.getElementById('graph-selector');
-     var g = document.getElementsByTagName('body')[0];
+          var e = document.documentElement;
+          var selector = document.getElementById('graph-selector');
+          var g = document.getElementsByTagName('body')[0];
 
-     var pageX = w.innerWidth || e.clientWidth || g.clientWidth;
-     var pageY = w.innerHeight|| e.clientHeight || g.clientHeight;
+          var pageX = w.innerWidth || e.clientWidth || g.clientWidth;
+          var pageY = w.innerHeight|| e.clientHeight || g.clientHeight;
 
-     var selectorY = 0;
+          var selectorY = 0;
 
-     if (selector !== null) {
-         selectorY = selector.clientHeight || 0;
-     }
+          if (selector !== null) {
+              selectorY = selector.clientHeight || 0;
+          }
 
-     var x = pageX;
-     var y = pageY - selectorY;
+          var x = pageX;
+          var y = pageY - selectorY;
 
+     return {x: x, y: y};
+   }
+
+   generateGraphOptions() {
+     var size = this.detectSize();
      return {
           layout: {
               hierarchical: {
                 direction: "LR",
                 nodeSpacing: 40,
                 treeSpacing: 50,
-                levelSeparation: 350
+                levelSeparation: 350,
+                sortMethod: 'directed'
               }
           },
           edges: {
               color: "#000000"
           },
-          height: y + 'px',
-          width: x + 'px',
+          height: size.y + "px",
+          width: size.x + "px",
           physics: {enabled: false},
           interaction: {
               dragNodes: false,
@@ -119,12 +125,17 @@ class App extends Component {
          color = "#ffc600";
         }
 
+        if (node.state === 'ELIMINATED') {
+         color = "#ff9090";
+        }
+
         return {
             id: node.id,
             label: node.label,
             level: node.round,
             color: color,
-            shape: 'box'
+            shape: 'box',
+            fixed: true
         };
      });
 

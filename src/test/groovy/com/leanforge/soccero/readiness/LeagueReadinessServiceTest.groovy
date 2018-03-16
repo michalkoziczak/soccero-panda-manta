@@ -146,10 +146,10 @@ class LeagueReadinessServiceTest extends Specification {
     def "should schedule game if all players are ready"() {
         given:
         leagueService.findAllStarted() >> [league]
-        tournamentService.currentState(league, _, _) >> new Tournament('', new Competition('a', 2), [], [], UUID.randomUUID())
-        tournamentService.pendingCompetitors(league, _, _) >> [
+        def tournament = new Tournament('', new Competition('a', 2), [new LeagueTeam(['a', 'b'].toSet()), new LeagueTeam(['c', 'd'].toSet())], [], UUID.randomUUID())
+        tournamentService.currentState(league, _, _) >> new TournamentState(0, tournament, [], [], [
                 [new LeagueTeam(['a', 'b'].toSet()), new LeagueTeam(['c', 'd'].toSet())].toSet()
-        ]
+        ])
 
         readinessService.readyPlayers() >> ['a','b','c','d'].toSet()
 
@@ -171,10 +171,10 @@ class LeagueReadinessServiceTest extends Specification {
     def "should not schedule game if any of players is busy"() {
         given:
         leagueService.findAllStarted() >> [league]
-        tournamentService.currentState(league, _, _) >> new Tournament('', new Competition('a', 2), [], [], UUID.randomUUID())
-        tournamentService.pendingCompetitors(league, _, _) >> [
+        def tournament = new Tournament('', new Competition('a', 2), [new LeagueTeam(['a', 'b'].toSet()), new LeagueTeam(['c', 'd'].toSet())], [], UUID.randomUUID())
+        tournamentService.currentState(league, _, _) >> new TournamentState(0, tournament, [], [], [
                 [new LeagueTeam(['a', 'b'].toSet()), new LeagueTeam(['c', 'd'].toSet())].toSet()
-        ]
+        ])
 
         readinessService.readyPlayers() >> ['a','b','d'].toSet()
 

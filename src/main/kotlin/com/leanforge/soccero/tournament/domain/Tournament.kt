@@ -74,4 +74,8 @@ data class Tournament(
                 .map { it ?: throw NullPointerException()}
                 .toList()
     }
+
+    fun isFinalRound(): Boolean {
+        return winners.size <= 1 && (winners.size + losers.size) <= 2
+    }
 }

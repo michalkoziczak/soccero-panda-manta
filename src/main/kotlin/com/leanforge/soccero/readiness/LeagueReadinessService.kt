@@ -61,13 +61,25 @@ class LeagueReadinessService
         val readyPlayers = readinessService.readyPlayers()
         return leagueService.findAllStarted()
                 .flatMap { league ->
-                    league.competitions
-                            .flatMap { competition ->
-                                tournamentService.pendingCompetitors(league, competition, tournamentMatchService.getResults(league.name, competition))
+                    val currentState = currentState(league)
+                    val finale = isFinale(currentState)
+                    currentState
+                            .filter { !it.tournament.isFinalRound() || finale }
+                            .flatMap { state ->
+                                state.pendingCompetitors
                                         .filter { c -> c.all { readyPlayers.containsAll(it.slackIds) } }
-                                        .map { Triple(league, competition, it) }
+                                        .map { Triple(league, state.tournament.competition, it) }
                             }
                 }
+    }
+
+    private fun currentState(league: League) : List<TournamentState> {
+        return league.competitions
+                .map {tournamentService.currentState(league, it, tournamentMatchService.getResults(league.name, it))}
+    }
+
+    private fun isFinale(state: List<TournamentState>): Boolean {
+        return state.all { it.tournament.isFinalRound() }
     }
 
     fun createNewStatusMessageForAllStartedLeagues() {
