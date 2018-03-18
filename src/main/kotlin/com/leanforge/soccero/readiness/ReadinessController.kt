@@ -113,16 +113,14 @@ class ReadinessController
     }
 
     @SlackActionListener(actionName = "personalState", actionValue = "ready")
-    fun handlePersonalReadyButton(slackMessage: SlackMessage, @SlackUserId user: String): SlackMessageResponse {
+    fun handlePersonalReadyButton(slackMessage: SlackMessage, @SlackUserId user: String) {
         readinessService.markReady(slackMessage, user)
         leagueReadinessService.updateStatusMessagesForAllStartedLeagues()
-        return SlackMessageResponse("Your status: :low_brightness:")
     }
 
     @SlackActionListener(actionName = "personalState", actionValue = "busy")
-    fun handlePersonalBusyButton(slackMessage: SlackMessage, @SlackUserId user: String): SlackMessageResponse {
+    fun handlePersonalBusyButton(slackMessage: SlackMessage, @SlackUserId user: String) {
         readinessService.markBusy(slackMessage, user)
         leagueReadinessService.updateStatusMessagesForAllStartedLeagues()
-        return SlackMessageResponse("Your status: :black_small_square:")
     }
 }

@@ -54,10 +54,12 @@ class DefaultReadinessService @Autowired constructor(
 
     override fun markReady(slackId: String) {
         readinessRepository.save(Readiness(slackId, Readiness.State.READY))
+        slackService.sendDirectMessage(slackId, "Your status is changed to: :low_brightness:")
     }
 
     override fun markBusy(slackId: String) {
         readinessRepository.save(Readiness(slackId, Readiness.State.BUSY))
+        slackService.sendDirectMessage(slackId, "Your status is changed to: :black_small_square:")
     }
 
     override fun isReady(slackId: String): Boolean {
