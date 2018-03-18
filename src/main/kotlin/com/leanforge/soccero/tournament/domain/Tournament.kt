@@ -78,4 +78,8 @@ data class Tournament(
     fun isFinalRound(): Boolean {
         return winners.size <= 1 && (winners.size + losers.size) <= 2
     }
+
+    fun isFinished(): Boolean {
+        return competitors().isEmpty()
+    }
 }

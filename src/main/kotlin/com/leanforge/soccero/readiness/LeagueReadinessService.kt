@@ -162,7 +162,18 @@ class LeagueReadinessService
     }
 
     private fun statusMessage(round: TournamentState, playersReady: Set<String>, hash: String) : String {
-        return ":trophy: #${round.round + 1} `${round.tournament.competition.label()}`\n" +
+        if (round.tournament.isFinished()) {
+            return ":trophy: #${round.round + 1} `${round.tournament.competition.label()}`\n" +
+                    ":checkered_flag: Finished!\n" +
+                    ":balloon: :balloon: :balloon:" +
+                    "\n\nTree view: http://soccero-panda-manta.dev.kende.pl/#$hash"
+        }
+
+        var addon = ""
+        if (round.tournament.isFinalRound()) {
+            addon = "\n:waving_white_flag: Final round! _(Finale can be played when all competitions reach final round)_"
+        }
+        return ":trophy: #${round.round + 1} `${round.tournament.competition.label()}`$addon\n" +
                 listedCompetitors(round.tournament.competitors(), round.currentRoundResults, playersReady) +
                 "\n\nTree view: http://soccero-panda-manta.dev.kende.pl/#$hash"
     }
