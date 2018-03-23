@@ -2,7 +2,6 @@ package com.leanforge.soccero.help
 
 import com.leanforge.game.slack.listener.SlackController
 import com.leanforge.game.slack.listener.SlackMessageListener
-import com.leanforge.soccero.help.domain.CommandExample
 import com.leanforge.soccero.help.domain.CommandManual
 import org.springframework.beans.factory.annotation.Autowired
 

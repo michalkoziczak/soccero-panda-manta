@@ -2,7 +2,6 @@ package com.leanforge.soccero.queue
 
 import com.leanforge.game.slack.SlackService
 import com.leanforge.soccero.league.domain.Competition
-import com.leanforge.soccero.league.domain.League
 import com.leanforge.soccero.queue.domain.QueueConfig
 import com.leanforge.soccero.queue.repo.QueueConfigRepository
 import com.leanforge.soccero.team.domain.LeagueTeam

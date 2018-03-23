@@ -1,7 +1,6 @@
 package com.leanforge.soccero.queue
 
 import com.leanforge.soccero.league.domain.Competition
-import com.leanforge.soccero.league.domain.League
 import com.leanforge.soccero.team.domain.LeagueTeam
 
 interface QueueService {

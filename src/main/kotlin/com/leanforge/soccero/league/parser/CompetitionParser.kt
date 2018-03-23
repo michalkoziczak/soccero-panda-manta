@@ -1,7 +1,6 @@
 package com.leanforge.soccero.league.parser
 
 import com.leanforge.soccero.league.domain.Competition
-import org.springframework.stereotype.Component
 import java.util.regex.Pattern
 
 object CompetitionParser {

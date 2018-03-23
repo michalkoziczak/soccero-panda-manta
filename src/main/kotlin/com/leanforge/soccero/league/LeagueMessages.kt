@@ -7,7 +7,6 @@ import com.leanforge.soccero.team.domain.LeagueTeam
 import com.leanforge.soccero.team.domain.TeamExclusion
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import java.util.*
 
 @Component
 open class LeagueMessages @Autowired constructor(val slackService: SlackService) {

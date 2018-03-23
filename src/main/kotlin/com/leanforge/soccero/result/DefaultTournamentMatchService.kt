@@ -5,12 +5,12 @@ import com.leanforge.game.slack.SlackService
 import com.leanforge.soccero.league.domain.Competition
 import com.leanforge.soccero.league.domain.League
 import com.leanforge.soccero.league.parser.MissingCompetitionException
+import com.leanforge.soccero.queue.QueueService
 import com.leanforge.soccero.result.domain.MatchResult
 import com.leanforge.soccero.result.domain.TournamentMatch
+import com.leanforge.soccero.result.exception.*
 import com.leanforge.soccero.result.repo.MatchResultRepository
 import com.leanforge.soccero.result.repo.TournamentMatchRepository
-import com.leanforge.soccero.queue.QueueService
-import com.leanforge.soccero.result.exception.*
 import com.leanforge.soccero.team.domain.LeagueTeam
 import com.leanforge.soccero.tournament.TournamentService
 import org.springframework.beans.factory.annotation.Autowired

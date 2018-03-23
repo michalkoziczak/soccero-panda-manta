@@ -4,8 +4,7 @@ import com.leanforge.game.slack.SlackMessage
 import com.leanforge.soccero.team.domain.LeagueTeam
 import org.springframework.data.annotation.Id
 import java.time.Instant
-
-import java.util.UUID
+import java.util.*
 
 data class League constructor(@Id var name : String = UUID.randomUUID().toString()) {
     var slackMessageId : String? = null
