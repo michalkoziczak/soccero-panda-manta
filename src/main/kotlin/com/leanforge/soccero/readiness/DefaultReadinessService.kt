@@ -8,6 +8,8 @@ import com.leanforge.soccero.readiness.domain.Readiness
 import com.leanforge.soccero.readiness.domain.ReadinessMessage
 import com.leanforge.soccero.readiness.repo.ReadinessMessageRepository
 import com.leanforge.soccero.readiness.repo.ReadinessRepository
+import com.leanforge.soccero.updater.UpdateMarkService
+import com.leanforge.soccero.updater.domain.UpdateMark
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -31,6 +33,7 @@ interface ReadinessService {
 class DefaultReadinessService @Autowired constructor(
         private val readinessRepository: ReadinessRepository,
         private val readinessMessageRepository: ReadinessMessageRepository,
+        private val updateMarkService: UpdateMarkService,
         private val slackService: SlackService) : ReadinessService {
 
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -55,11 +58,13 @@ class DefaultReadinessService @Autowired constructor(
     override fun markReady(slackId: String) {
         readinessRepository.save(Readiness(slackId, Readiness.State.READY))
         slackService.sendDirectMessage(slackId, "Your status is changed to: :low_brightness:")
+        updateMarkService.markForUpdate(UpdateMark.Type.LEAGUE_READINESS)
     }
 
     override fun markBusy(slackId: String) {
         readinessRepository.save(Readiness(slackId, Readiness.State.BUSY))
         slackService.sendDirectMessage(slackId, "Your status is changed to: :black_small_square:")
+        updateMarkService.markForUpdate(UpdateMark.Type.LEAGUE_READINESS)
     }
 
     override fun isReady(slackId: String): Boolean {

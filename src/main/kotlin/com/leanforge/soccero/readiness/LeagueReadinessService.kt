@@ -11,6 +11,8 @@ import com.leanforge.soccero.result.domain.MatchResult
 import com.leanforge.soccero.team.domain.LeagueTeam
 import com.leanforge.soccero.tournament.TournamentService
 import com.leanforge.soccero.tournament.domain.TournamentState
+import com.leanforge.soccero.updater.UpdateMarkService
+import com.leanforge.soccero.updater.domain.UpdateMark
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.scheduling.annotation.Scheduled
@@ -29,6 +31,7 @@ class LeagueReadinessService
         private val tournamentMatchService: TournamentMatchService,
         private val leagueService: LeagueService,
         private val slackService: SlackService,
+        private val updateMarkService: UpdateMarkService,
         @Qualifier("resetTime") private val resetTime: LocalTime) {
 
     @Scheduled(fixedDelay = 600000)
@@ -43,6 +46,14 @@ class LeagueReadinessService
         }
 
         createNewStatusMessageForAllStartedLeagues()
+    }
+
+    @Scheduled(fixedDelay = 10000)
+    fun updateLeagueReadiness() {
+        if (updateMarkService.needsUpdate(UpdateMark.Type.LEAGUE_READINESS)) {
+            updateStatusMessagesForAllStartedLeagues()
+            updateMarkService.markUpdated(UpdateMark.Type.LEAGUE_READINESS)
+        }
     }
 
     @Scheduled(fixedDelay = 60000)

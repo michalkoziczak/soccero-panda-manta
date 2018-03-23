@@ -90,37 +90,31 @@ class ReadinessController
     fun manualPlayerReady(@SlackMessageRegexGroup(1) players: String) {
         IdsExtractor.extractIds(players)
                 .onEach { readinessService.markReady(it) }
-        leagueReadinessService.updateStatusMessagesForAllStartedLeagues()
     }
 
     @SlackMessageListener("playerBusy (.*)")
     fun manualPlayerBusy(@SlackMessageRegexGroup(1) players: String) {
         IdsExtractor.extractIds(players)
                 .onEach { readinessService.markBusy(it) }
-        leagueReadinessService.updateStatusMessagesForAllStartedLeagues()
     }
 
     @SlackActionListener(actionName = "state", actionValue = "ready")
     fun handleReadyButton(slackMessage: SlackMessage, @SlackUserId user: String) {
         readinessService.markReady(slackMessage, user)
-        leagueReadinessService.updateStatusMessagesForAllStartedLeagues()
     }
 
     @SlackActionListener(actionName = "state", actionValue = "busy")
     fun handleBusyButton(slackMessage: SlackMessage, @SlackUserId user: String) {
         readinessService.markBusy(slackMessage, user)
-        leagueReadinessService.updateStatusMessagesForAllStartedLeagues()
     }
 
     @SlackActionListener(actionName = "personalState", actionValue = "ready")
     fun handlePersonalReadyButton(slackMessage: SlackMessage, @SlackUserId user: String) {
         readinessService.markReady(slackMessage, user)
-        leagueReadinessService.updateStatusMessagesForAllStartedLeagues()
     }
 
     @SlackActionListener(actionName = "personalState", actionValue = "busy")
     fun handlePersonalBusyButton(slackMessage: SlackMessage, @SlackUserId user: String) {
         readinessService.markBusy(slackMessage, user)
-        leagueReadinessService.updateStatusMessagesForAllStartedLeagues()
     }
 }

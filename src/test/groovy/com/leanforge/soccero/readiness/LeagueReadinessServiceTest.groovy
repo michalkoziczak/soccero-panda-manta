@@ -12,6 +12,7 @@ import com.leanforge.soccero.team.domain.LeagueTeam
 import com.leanforge.soccero.tournament.TournamentService
 import com.leanforge.soccero.tournament.domain.Tournament
 import com.leanforge.soccero.tournament.domain.TournamentState
+import com.leanforge.soccero.updater.UpdateMarkService
 import spock.lang.Ignore
 import spock.lang.Specification
 
@@ -28,6 +29,7 @@ class LeagueReadinessServiceTest extends Specification {
     TournamentMatchService tournamentMatchService = Mock()
     LeagueService leagueService = Mock()
     SlackService slackService = Mock()
+    UpdateMarkService updateMarkService = Mock()
 
     LeagueReadinessService leagueReadinessService = new LeagueReadinessService(
             readinessService,
@@ -36,6 +38,7 @@ class LeagueReadinessServiceTest extends Specification {
             tournamentMatchService,
             leagueService,
             slackService,
+            updateMarkService,
             LocalTime.MIN
     )
 
@@ -46,6 +49,7 @@ class LeagueReadinessServiceTest extends Specification {
             tournamentMatchService,
             leagueService,
             slackService,
+            updateMarkService,
             LocalTime.MAX
     )
 
