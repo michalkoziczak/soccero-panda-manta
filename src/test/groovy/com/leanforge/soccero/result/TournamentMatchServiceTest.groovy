@@ -8,6 +8,7 @@ import com.leanforge.soccero.result.domain.MatchResult
 import com.leanforge.soccero.result.domain.TournamentMatch
 import com.leanforge.soccero.result.exception.AmbiguousPlayerToTeamMappingException
 import com.leanforge.soccero.result.exception.FrozenResultException
+import com.leanforge.soccero.result.exception.AdminMissingPlayerException
 import com.leanforge.soccero.result.exception.MissingPlayerException
 import com.leanforge.soccero.result.exception.WinnersCollisionException
 import com.leanforge.soccero.result.repo.MatchResultRepository

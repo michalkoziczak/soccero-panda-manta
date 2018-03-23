@@ -7,13 +7,10 @@ import com.leanforge.soccero.league.domain.League
 import com.leanforge.soccero.league.parser.MissingCompetitionException
 import com.leanforge.soccero.result.domain.MatchResult
 import com.leanforge.soccero.result.domain.TournamentMatch
-import com.leanforge.soccero.result.exception.AmbiguousPlayerToTeamMappingException
-import com.leanforge.soccero.result.exception.FrozenResultException
-import com.leanforge.soccero.result.exception.MissingPlayerException
-import com.leanforge.soccero.result.exception.WinnersCollisionException
 import com.leanforge.soccero.result.repo.MatchResultRepository
 import com.leanforge.soccero.result.repo.TournamentMatchRepository
 import com.leanforge.soccero.queue.QueueService
+import com.leanforge.soccero.result.exception.*
 import com.leanforge.soccero.team.domain.LeagueTeam
 import com.leanforge.soccero.tournament.TournamentService
 import org.springframework.beans.factory.annotation.Autowired
@@ -55,7 +52,7 @@ class DefaultTournamentMatchService @Autowired constructor(
         val excludedPlayer = players.firstOrNull { !playingPlayers.contains(it) }
 
         if (excludedPlayer != null) {
-            throw MissingPlayerException(excludedPlayer)
+            throw AdminMissingPlayerException(excludedPlayer)
         }
 
         createMatch(league, competition, teams[0], teams[1])
@@ -180,7 +177,7 @@ class DefaultTournamentMatchService @Autowired constructor(
     }
 
     private fun createMatchMessage(teamA: LeagueTeam, teamB: LeagueTeam, competition: Competition, winner: LeagueTeam?) : String {
-        return "${matchLineMessage(teamA, teamB, competition, winner)}`\n" +
+        return "${matchLineMessage(teamA, teamB, competition, winner)}\n" +
                 "Did you win? Click :trophy:";
     }
 
