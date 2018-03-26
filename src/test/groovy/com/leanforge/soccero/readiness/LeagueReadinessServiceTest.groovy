@@ -172,6 +172,39 @@ class LeagueReadinessServiceTest extends Specification {
         }
     }
 
+    def "should prefer game in lower round"() {
+        given:
+        leagueService.findAllStarted() >> [league]
+        def tournamentA = new Tournament('', new Competition('a', 2), [new LeagueTeam(['a', 'b'].toSet()), new LeagueTeam(['c', 'd'].toSet())], [], UUID.randomUUID())
+        def tournamentB = new Tournament('', new Competition('b', 2), [new LeagueTeam(['a', 'b'].toSet()), new LeagueTeam(['c', 'd'].toSet())], [], UUID.randomUUID())
+        def tournamentC = new Tournament('', new Competition('c', 2), [new LeagueTeam(['a', 'b'].toSet()), new LeagueTeam(['c', 'd'].toSet())], [], UUID.randomUUID())
+        tournamentService.currentState(league, tournamentA.competition, _) >> new TournamentState(3, tournamentA, [], [], [
+                [new LeagueTeam(['a', 'b'].toSet()), new LeagueTeam(['c', 'd'].toSet())].toSet()
+        ])
+
+        tournamentService.currentState(league, tournamentB.competition, _) >> new TournamentState(1, tournamentB, [], [], [
+                [new LeagueTeam(['a', 'b'].toSet()), new LeagueTeam(['c', 'd'].toSet())].toSet()
+        ])
+
+        tournamentService.currentState(league, tournamentC.competition, _) >> new TournamentState(2, tournamentC, [], [], [
+                [new LeagueTeam(['a', 'b'].toSet()), new LeagueTeam(['c', 'd'].toSet())].toSet()
+        ])
+
+        readinessService.readyPlayers() >> ['a','b','c','d'].toSet()
+
+        when:
+        leagueReadinessService.scheduleReadyGames()
+
+        then:
+        1 * tournamentMatchService.createMatch(league, _, _, _) >> {
+            Competition comp = it[1]
+            def teamA = it[2]
+            def teamB = it[3]
+            assert [teamA, teamB].toSet() == [new LeagueTeam(['a', 'b'].toSet()), new LeagueTeam(['c', 'd'].toSet())].toSet()
+            assert comp.name == 'b'
+        }
+    }
+
     def "should not schedule game if any of players is busy"() {
         given:
         leagueService.findAllStarted() >> [league]

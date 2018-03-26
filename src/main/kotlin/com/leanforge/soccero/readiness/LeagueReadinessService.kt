@@ -58,17 +58,25 @@ class LeagueReadinessService
 
     @Scheduled(fixedDelay = 60000)
     fun scheduleReadyGames() {
-        val battle = allReadyCompetitors().shuffled()
-                .firstOrNull() ?: return
+        val battle = findRandomBattleInLowestRound() ?: return
 
         val teams = battle.third.toList()
         teams.flatMap { it.slackIds }
                 .onEach { readinessService.markBusy(it) }
-        tournamentMatchService.createMatch(battle.first, battle.second, teams[0], teams[1])
+        tournamentMatchService.createMatch(battle.first, battle.second.tournament.competition, teams[0], teams[1])
         updateStatusMessagesForAllStartedLeagues()
     }
 
-    private fun allReadyCompetitors() : List<Triple<League, Competition, Set<LeagueTeam>>> {
+    private fun findRandomBattleInLowestRound(): Triple<League, TournamentState, Set<LeagueTeam>>? {
+        val readyCompetitors = allReadyCompetitors().shuffled()
+        val lowestRound = readyCompetitors.map { it.second.round }
+                .distinct()
+                .min()
+        return readyCompetitors
+                .firstOrNull { it.second.round == lowestRound }
+    }
+
+    private fun allReadyCompetitors() : List<Triple<League, TournamentState, Set<LeagueTeam>>> {
         val readyPlayers = readinessService.readyPlayers()
         return leagueService.findAllStarted()
                 .flatMap { league ->
@@ -79,7 +87,7 @@ class LeagueReadinessService
                             .flatMap { state ->
                                 state.pendingCompetitors
                                         .filter { c -> c.all { readyPlayers.containsAll(it.slackIds) } }
-                                        .map { Triple(league, state.tournament.competition, it) }
+                                        .map { Triple(league, state, it) }
                             }
                 }
     }
