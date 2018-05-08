@@ -38,7 +38,10 @@ class App extends Component {
    }
 
    handleResize() {
+       var selectedCompetition = this.state.selectedCompetition;
+       this.setState({selectedCompetition: 'none'});
        this.setState({options: this.generateGraphOptions()});
+       this.setState({selectedCompetition: selectedCompetition});
    }
 
    detectSize() {
@@ -69,9 +72,12 @@ class App extends Component {
               hierarchical: {
                 direction: "LR",
                 nodeSpacing: 40,
-                treeSpacing: 50,
+                treeSpacing: 90,
                 levelSeparation: 350,
-                sortMethod: 'directed'
+                sortMethod: 'directed',
+                parentCentralization: true,
+                blockShifting: true,
+                edgeMinimization: true
               }
           },
           edges: {
@@ -113,6 +119,12 @@ class App extends Component {
    handleTournamentChange(event) {
      var tree = JSON.parse(event.data);
      var graphs = this.state.graphs;
+     var layoutNode = {
+       hidden: true,
+       id: 'start',
+       level: 0,
+       label: tree.competition
+     };
 
      var nodes = _.map(tree.nodes, function(node) {
         var color = undefined;
@@ -132,12 +144,14 @@ class App extends Component {
         return {
             id: node.id,
             label: node.label,
-            level: node.round,
+            level: node.round + 1,
             color: color,
             shape: 'box',
             fixed: true
         };
      });
+
+     nodes.push(layoutNode);
 
     var edges = _.map(tree.nodes, function(node) {
       if (!node.child) {
@@ -145,6 +159,17 @@ class App extends Component {
       }
       return {from: node.id, to: node.child};
     });
+
+    var layoutEdges = _.map(tree.nodes, function(node) {
+      var parent = _.find(tree.nodes, parent => parent.child === node.id);
+      if (parent) {
+        return null;
+      }
+      return {from: 'start', to: node.id, hidden: true};
+    });
+
+    edges = edges.concat(layoutEdges);
+
     var edges = _.filter(edges, function(edge) {return edge !== null});
     var graph = {nodes: nodes, edges: edges};
 
@@ -176,6 +201,14 @@ class App extends Component {
   render() {
     var selectedCompetition = this.state.selectedCompetition;
     var selectedGraph = this.state.selectedGraph;
+
+    if (this.state.selectedCompetition === 'none') {
+      return <div>
+      <div id="graph-selector"><ReactDropdown value={selectedCompetition} options={this.state.competitions} placeholder="Select competition" onChange={this._onSelect.bind(this)}></ReactDropdown></div>
+      <div id="graph-view"><Graph graph={{}} options={this.state.options} events={events}  /></div>
+      </div>;
+    }
+
     if (!this.state.selectedCompetition && this.state.competitions.length > 0) {
       selectedCompetition = this.state.competitions[0];
       selectedGraph = this.state.graphs[selectedCompetition];
