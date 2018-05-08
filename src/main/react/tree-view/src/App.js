@@ -92,7 +92,7 @@ class App extends Component {
        if (websocket) {
          websocket.close();
        }
-       websocket = new WebSocket("ws://soccero-panda-manta.dev.kende.pl/tournaments");
+       websocket = new WebSocket("ws://soccero-panda-manta.playroom.leanforge.pl/tournaments");
        websocket.onmessage = this.handleTournamentChange.bind(this);
        websocket.onclose = this.attachWebSocket.bind(this);
        websocket.onopen = function() {

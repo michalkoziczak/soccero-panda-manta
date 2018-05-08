@@ -40,7 +40,7 @@ repositories {
 }
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.2.21"
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:+"
     compile 'org.springframework.boot:spring-boot-starter-actuator:1.+'
     compile 'org.springframework.boot:spring-boot-starter-web:1.+'
     compile 'org.springframework.boot:spring-boot-starter-websocket:1.+'
@@ -119,6 +119,19 @@ metadata:
 spec:
   rules:
   - host: "${rootProject.name}.dev.kende.pl"
+    http:
+      paths:
+      - backend:
+          serviceName: $rootProject.name
+          servicePort: 8080
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ${rootProject.name}-lf
+spec:
+  rules:
+  - host: "${rootProject.name}.playroom.leanforge.pl"
     http:
       paths:
       - backend:

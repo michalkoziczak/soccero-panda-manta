@@ -185,7 +185,7 @@ class LeagueReadinessService
             return ":trophy: #${round.round + 1} `${round.tournament.competition.label()}`\n" +
                     ":checkered_flag: Finished!\n" +
                     ":balloon: :balloon: :balloon:" +
-                    "\n\nTree view: http://soccero-panda-manta.dev.kende.pl/#$hash"
+                    "\n\nTree view: http://soccero-panda-manta.playroom.leanforge.pl/#$hash"
         }
 
         var addon = ""
@@ -194,7 +194,7 @@ class LeagueReadinessService
         }
         return ":trophy: #${round.round + 1} `${round.tournament.competition.label()}`$addon\n" +
                 listedCompetitors(round.tournament.competitors(), round.currentRoundResults, playersReady) +
-                "\n\nTree view: http://soccero-panda-manta.dev.kende.pl/#$hash"
+                "\n\nTree view: http://soccero-panda-manta.playroom.leanforge.pl/#$hash"
     }
 
     private fun listedCompetitors(competitors: List<Set<LeagueTeam>>, roundResults: List<MatchResult>, playersReady: Set<String>) : String {
