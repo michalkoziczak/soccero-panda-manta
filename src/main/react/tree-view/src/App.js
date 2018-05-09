@@ -23,12 +23,13 @@ class App extends Component {
             options: options,
             competitions: [],
             graphs: {},
+            limitedGraphs: {},
             selectedCompetition: window.location.hash.substring(1).replace(/_!_/gi, " "),
             x: size.x,
             y: size.y
         }
 
-        setInterval(this.checkWebSocket.bind(this), 1000)
+        setInterval(this.checkWebSocket.bind(this), 1000);
     }
 
    componentDidMount() {
@@ -116,18 +117,19 @@ class App extends Component {
        }
    }
 
-   handleTournamentChange(event) {
-     var tree = JSON.parse(event.data);
-     var graphs = this.state.graphs;
-     var layoutNode = {
-       hidden: true,
-       id: 'start',
+   calculateGraph(tree, minRound) {
+     const layoutNodeId = tree.leagueName + '-' + tree.competition;
+     const layoutNode = {
+       hidden: false,
+       id: layoutNodeId,
        level: 0,
-       label: tree.competition
+       label: tree.competition,
+       shape: 'text',
+       chosen: false
      };
-
-     var nodes = _.map(tree.nodes, function(node) {
-        var color = undefined;
+     const treeNodes = _.filter(tree.nodes, n => n.round >= minRound)
+     const nodes = _.map(treeNodes, function(node) {
+        let color = undefined;
 
         if (node.state === 'WON') {
          color = "#d3ffd1";
@@ -144,46 +146,78 @@ class App extends Component {
         return {
             id: node.id,
             label: node.label,
-            level: node.round + 1,
+            level: node.round + 1 - minRound,
             color: color,
             shape: 'box',
             fixed: true
         };
      });
-
      nodes.push(layoutNode);
 
-    var edges = _.map(tree.nodes, function(node) {
-      if (!node.child) {
-        return null;
-      }
-      return {from: node.id, to: node.child};
-    });
+     let edges = _.map(treeNodes, function(node) {
+       if (!node.child) {
+         return null;
+       }
+       return {from: node.id, to: node.child};
+     });
 
-    var layoutEdges = _.map(tree.nodes, function(node) {
-      var parent = _.find(tree.nodes, parent => parent.child === node.id);
-      if (parent) {
-        return null;
-      }
-      return {from: 'start', to: node.id, hidden: true};
-    });
+     const layoutEdges = _.map(treeNodes, function(node) {
+       const parent = _.find(treeNodes, parent => parent.child === node.id);
+       if (parent) {
+         return null;
+       }
+       return {from: layoutNodeId, to: node.id, hidden: true};
+     });
 
-    edges = edges.concat(layoutEdges);
+     edges = edges.concat(layoutEdges);
+     edges = _.filter(edges, function(edge) {return edge !== null});
 
-    var edges = _.filter(edges, function(edge) {return edge !== null});
-    var graph = {nodes: nodes, edges: edges};
+     return {nodes: nodes, edges: edges};
+   }
 
-    graphs[tree.leagueName + " " + tree.competition] = graph;
-    var competitions = _.keys(graphs);
+   handleTournamentChange(event) {
+     const tree = JSON.parse(event.data);
+     let graphs = this.state.graphs;
+     let limitedGraphs = this.state.limitedGraphs;
+     const graph = this.calculateGraph(tree, 0);
+     const currentRound = _.maxBy(tree.nodes, n => n.round).round;
+     let minRound = currentRound - 1;
+     if (minRound < 0) {
+       minRound = 0;
+     }
+     const limitedGraph = this.calculateGraph(tree, minRound);
+     graphs['Summary'] = {nodes: [], edges: []};
+     graphs[tree.leagueName + " " + tree.competition] = graph;
+     limitedGraphs[tree.leagueName + " " + tree.competition] = limitedGraph;
+     graphs['Summary'] = this.treeSummary(limitedGraphs);
+     const competitions = _.keys(graphs);
 
-    this.setState({
-        graphs: graphs,
-        competitions: competitions
-    });
+     this.setState({
+       graphs,
+       competitions,
+       limitedGraphs
+     });
 
-    if (this.state.selectedCompetition === tree.leagueName + " " + tree.competition) {
-      this.setState({selectedGraph: graph})
-    }
+     if (this.state.selectedCompetition === tree.leagueName + " " + tree.competition) {
+       this.setState({selectedGraph: graph})
+     }
+   }
+
+   treeSummary(graphs) {
+     if (_.values(graphs).length === 0) {
+       return {nodes: [], edges: []};
+     }
+     var allGraphs = _.values(graphs);
+     var nodes = [];
+     var edges = [];
+     _.forEach(allGraphs, function(v) {
+       _.forEach(v.nodes, n => nodes.push(n));
+       _.forEach(v.edges, e => edges.push(e));
+     });
+     return {
+       nodes: nodes,
+       edges: edges
+     };
    }
 
    _onSelect(e) {
