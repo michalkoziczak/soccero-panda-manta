@@ -118,7 +118,7 @@ class App extends Component {
    }
 
    calculateGraph(tree, minRound) {
-     const layoutNodeId = tree.leagueName + '-' + tree.competition;
+     const layoutNodeId = tree.leagueName + '-' + tree.competition + '-' + minRound;
      const layoutNode = {
        hidden: false,
        id: layoutNodeId,
@@ -144,7 +144,7 @@ class App extends Component {
         }
 
         return {
-            id: node.id,
+            id: node.id + '-' + minRound,
             label: node.label,
             level: node.round + 1 - minRound,
             color: color,
@@ -158,7 +158,7 @@ class App extends Component {
        if (!node.child) {
          return null;
        }
-       return {from: node.id, to: node.child};
+       return {from: node.id + '-' + minRound, to: node.child + '-' + minRound};
      });
 
      const layoutEdges = _.map(treeNodes, function(node) {
@@ -166,7 +166,7 @@ class App extends Component {
        if (parent) {
          return null;
        }
-       return {from: layoutNodeId, to: node.id, hidden: true};
+       return {from: layoutNodeId, to: node.id + '-' + minRound, hidden: true};
      });
 
      edges = edges.concat(layoutEdges);
