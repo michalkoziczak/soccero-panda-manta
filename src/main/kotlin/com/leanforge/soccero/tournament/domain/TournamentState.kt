@@ -8,5 +8,6 @@ data class TournamentState(
         val tournament: Tournament,
         val allResults: List<MatchResult>,
         val currentRoundResults: List<MatchResult>,
-        val pendingCompetitors: List<Set<LeagueTeam>>
+        val pendingCompetitors: List<Set<LeagueTeam>>,
+        val teamLost: Set<LeagueTeam> = emptySet()
 )
