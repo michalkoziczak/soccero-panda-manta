@@ -88,7 +88,7 @@ class DefaultReadinessService @Autowired constructor(
     }
 
     override fun trySendOpponentReadinessMessage(userId: String) {
-        trySendPersonalReadinessMessage(userId, "Your opponent is ready. Maybe you can join him?")
+        trySendPersonalReadinessMessage(userId, "Your opponent is ready!")
     }
 
     private fun trySendPersonalReadinessMessage(userId: String, msg: String) {
