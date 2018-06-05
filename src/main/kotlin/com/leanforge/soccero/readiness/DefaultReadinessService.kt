@@ -25,6 +25,7 @@ interface ReadinessService {
     fun sendGenericReadinessMessage(channelId: String)
     fun trySendPersonalReadinessMessage(userId: String)
     fun trySendMateReadinessMessage(userId: String)
+    fun trySendOpponentReadinessMessage(userId: String)
     fun markEveryoneBusy()
     fun readyPlayers() : Set<String>
 }
@@ -84,6 +85,10 @@ class DefaultReadinessService @Autowired constructor(
 
     override fun trySendMateReadinessMessage(userId: String) {
         trySendPersonalReadinessMessage(userId, "Your mate is ready. Maybe you can join him?")
+    }
+
+    override fun trySendOpponentReadinessMessage(userId: String) {
+        trySendPersonalReadinessMessage(userId, "Your opponent is ready. Maybe you can join him?")
     }
 
     private fun trySendPersonalReadinessMessage(userId: String, msg: String) {

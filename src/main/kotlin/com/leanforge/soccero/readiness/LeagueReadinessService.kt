@@ -152,17 +152,22 @@ class LeagueReadinessService
     private fun sendCommercials(currentRound: TournamentState, playersReady: Set<String>) {
         currentRound.pendingCompetitors.forEach { comp ->
             comp.forEach {
-                sendCommercials(it, playersReady)
+                sendCommercials(it, playersReady, comp.minus(it).single())
             }
         }
     }
 
-    private fun sendCommercials(team: LeagueTeam, playersReady: Set<String>) {
+    private fun sendCommercials(team: LeagueTeam, playersReady: Set<String>, opponent: LeagueTeam) {
         val readyPlayers = team.slackIds.count { playersReady.contains(it) }
         if ( readyPlayers > 0 && readyPlayers < team.size()) {
             team.slackIds
                     .filter { !playersReady.contains(it) }
                     .forEach { readinessService.trySendMateReadinessMessage(it) }
+        }
+        if (!playersReady.containsAll(team.slackIds) && playersReady.containsAll(opponent.slackIds)) {
+            team.slackIds
+                    .filter { !playersReady.contains(it) }
+                    .forEach { readinessService.trySendOpponentReadinessMessage(it) }
         }
     }
 
