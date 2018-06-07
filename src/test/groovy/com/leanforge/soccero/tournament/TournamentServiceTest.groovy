@@ -150,11 +150,11 @@ class TournamentServiceTest extends Specification {
          *   (1) -/        |
          *   (2) -\        |
          *   (3) - -- (3) - -- (3)
-         *   (4) ---- (4) -\
-         *            (1')- -- (1')
-         *            (2')---- (2')
+         *   (4) ---- (4) ---- (4)
+         *            (1')-\
+         *            (2')- -- (2')
          *                     (0')
-         *                     (4')
+         *
          */
 
         def initialResults = []
@@ -169,7 +169,7 @@ class TournamentServiceTest extends Specification {
         ]
 
         def endOfRound2 = middleOfRound2 + [
-                create(teams[1], teams[4]),
+                create(teams[2], teams[1]),
         ]
 
         when:
@@ -186,15 +186,15 @@ class TournamentServiceTest extends Specification {
         ]
         round2.tournament.competitors() == [
                 [teams[0], teams[3]].toSet(),
-                [teams[4], teams[1]].toSet()
+                [teams[1], teams[2]].toSet()
         ]
         middleRound2.tournament.competitors() == [
                 [teams[0], teams[3]].toSet(),
-                [teams[4], teams[1]].toSet()
+                [teams[1], teams[2]].toSet()
         ]
         round3.tournament.competitors() == [
-                [teams[1], teams[2]].toSet(),
-                [teams[0], teams[4]].toSet()
+                [teams[3], teams[4]].toSet(),
+                [teams[0], teams[2]].toSet()
         ]
 
         // pending competitors in current round
@@ -204,14 +204,14 @@ class TournamentServiceTest extends Specification {
         ]
         round2.pendingCompetitors == [
                 [teams[0], teams[3]].toSet(),
-                [teams[4], teams[1]].toSet()
+                [teams[1], teams[2]].toSet()
         ]
         middleRound2.pendingCompetitors == [
-                [teams[4], teams[1]].toSet()
+                [teams[1], teams[2]].toSet()
         ]
         round3.pendingCompetitors == [
-                [teams[1], teams[2]].toSet(),
-                [teams[0], teams[4]].toSet()
+                [teams[3], teams[4]].toSet(),
+                [teams[0], teams[2]].toSet()
         ]
     }
 

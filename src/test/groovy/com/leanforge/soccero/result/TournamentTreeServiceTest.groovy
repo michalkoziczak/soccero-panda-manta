@@ -45,15 +45,15 @@ class TournamentTreeServiceTest extends Specification {
                 new Tournament(league.name, competition, [teams[0], teams[3], teams[4]], [teams[1], teams[2]], UUID.randomUUID()),
                 [], [
                 result(teams[0], teams[3]),
-                result(teams[4], teams[1])
+                result(teams[2], teams[1])
         ], []
         )
 
         def round2 = new TournamentState(
                 2,
-                new Tournament(league.name, competition, [teams[0], teams[4]], [teams[1], teams[2], teams[3]], UUID.randomUUID()),
+                new Tournament(league.name, competition, [teams[0], teams[4]], [teams[2], teams[3]], UUID.randomUUID()),
                 [], [
-                result(teams[1], teams[2])
+                result(teams[3], teams[2])
         ], [
                 [teams[0], teams[4]].toSet()
         ]
@@ -82,10 +82,10 @@ class TournamentTreeServiceTest extends Specification {
                     it.state == TournamentTreeNode.State.LOST
         }
         tree.any {
-            it.team == team('p4') &&
+            it.team == team('p2') &&
                     it.round == 1 &&
                     it.state == TournamentTreeNode.State.WON &&
-                    findById(it.child, tree).team == team('p4') &&
+                    findById(it.child, tree).team == team('p2') &&
                     findById(it.child, tree).round == 2
         }
         tree.any {
@@ -94,7 +94,7 @@ class TournamentTreeServiceTest extends Specification {
                     it.state == TournamentTreeNode.State.BLOCKED
         }
         tree.any {
-            it.team == team('p1') &&
+            it.team == team('p3') &&
                     it.round == 2 &&
                     it.state == TournamentTreeNode.State.WON
         }
