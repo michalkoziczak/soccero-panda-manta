@@ -15,6 +15,13 @@ data class Tournament(
 
 
     fun competitors() : List<Set<LeagueTeam>> {
+        if (winners.size == 1 && losers.size == 1) {
+            return (winners + losers)
+                    .windowed(2, 2, false)
+                    .map { it.toSet() }
+                    .toList()
+        }
+
         var winningCompetitors = winners.windowed(2, 2, false)
                 .map { it.toSet() }
                 .toList()
