@@ -90,6 +90,8 @@ spec:
             secretKeyRef:
               name: panda-manta
               key: slackToken
+        - name: _JAVA_OPTIONS
+          value: -Xmx256m -Xms64m
         livenessProbe:
           initialDelaySeconds: 60
           httpGet:
