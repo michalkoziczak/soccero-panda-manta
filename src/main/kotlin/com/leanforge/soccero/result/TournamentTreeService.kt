@@ -56,7 +56,7 @@ class TournamentTreeService @Autowired constructor(
 
     private fun assignOpponentAndResult(node: TournamentTreeNode, allRounds: List<TournamentState>, allNodes: MutableList<TournamentTreeNode>, tournamentState: TournamentState) {
         val state = allRounds.single { it.round == node.round }
-        val competitors = state.tournament.competitors().firstOrNull { it.contains(node.team) }
+        val competitors = state.tournament.competitors(state.roundDescription).firstOrNull { it.contains(node.team) }
         if (competitors == null) {
             node.state = TournamentTreeNode.State.BLOCKED
             node.child = allNodes.singleOrNull { it.team == node.team && it.round == node.round + 1 }

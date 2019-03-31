@@ -3,7 +3,7 @@ plugins {
     id "org.jetbrains.kotlin.jvm" version "1.2.21"
 }
 
-group 'mrdunski'
+group 'michalkoziczak'
 version project.hasProperty('v') ? project.ext.v : 'SNAPSHOT'
 
 apply plugin: 'groovy'
@@ -81,7 +81,7 @@ spec:
     spec:
       containers:
       - name: $rootProject.name
-        image: mrdunski/$rootProject.name:${project.version}
+        image: michalkoziczak/$rootProject.name:${project.version}
         ports:
         - containerPort: 8080
         env:
@@ -144,17 +144,17 @@ spec:
 
 task('dockerTagLatest', type: Exec, dependsOn: 'dockerBuildImage') {
     executable 'docker'
-    args 'tag', "mrdunski/${rootProject.name}:${project.version}", "mrdunski/$rootProject.name:latest"
+    args 'tag', "michalkoziczak/${rootProject.name}:${project.version}", "michalkoziczak/$rootProject.name:latest"
 }
 
 task('dockerPushLatest', type: Exec, dependsOn: 'dockerTagLatest') {
     executable 'docker'
-    args 'push', "mrdunski/$rootProject.name:latest"
+    args 'push', "michalkoziczak/$rootProject.name:latest"
 }
 
 task('dockerPushProjectVersion', type: Exec, dependsOn: 'dockerBuildImage') {
     executable 'docker'
-    args 'push', "mrdunski/$rootProject.name:${project.version}"
+    args 'push', "michalkoziczak/$rootProject.name:${project.version}"
 }
 
 task('npmInstall', type: Exec) {

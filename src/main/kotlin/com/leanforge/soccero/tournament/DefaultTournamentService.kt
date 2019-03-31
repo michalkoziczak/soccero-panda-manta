@@ -4,6 +4,8 @@ import com.leanforge.game.slack.SlackService
 import com.leanforge.soccero.league.domain.Competition
 import com.leanforge.soccero.league.domain.League
 import com.leanforge.soccero.result.domain.MatchResult
+import com.leanforge.soccero.round.Round
+import com.leanforge.soccero.round.RoundService
 import com.leanforge.soccero.team.domain.LeagueTeam
 import com.leanforge.soccero.tournament.domain.Tournament
 import com.leanforge.soccero.tournament.domain.TournamentState
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service
 @Service
 class DefaultTournamentService @Autowired constructor(
         private val tournamentRepository: TournamentRepository,
+        private val roundService: RoundService,
         private val slackService: SlackService
 ) : TournamentService {
 
@@ -47,23 +50,27 @@ class DefaultTournamentService @Autowired constructor(
         var round : Tournament = initial
         var resultsLeft : List<MatchResult> = results
 
-        val initialPendingCompetitors = round.competitors()
+        var roundDescription = findRound(initial, roundNo)
+
+        val initialPendingCompetitors = round.competitors(roundDescription)
                 .filter { c -> resultsLeft.none { r -> r.hasTeams(c) } }
                 .toList()
 
-        allRounds.add(TournamentState(roundNo, round, results, round.filterCurrentResults(resultsLeft), initialPendingCompetitors))
+        allRounds.add(TournamentState(roundNo, round, results, round.filterCurrentResults(resultsLeft, roundDescription), initialPendingCompetitors, roundDescription))
 
-        while(round.hasAllResults(resultsLeft) && round.competitors().isNotEmpty() && resultsLeft.isNotEmpty()) {
-            val currentRound = round.filterCurrentResults(resultsLeft)
+        while(round.hasAllResults(resultsLeft, roundDescription) && round.competitors(roundDescription).isNotEmpty() && resultsLeft.isNotEmpty()) {
+            val currentRound = round.filterCurrentResults(resultsLeft, roundDescription)
             round = round.currentState(currentRound)
             resultsLeft -= currentRound
             roundNo++
 
-            val pendingCompetitors = round.competitors()
+            roundDescription = findRound(round, roundNo)
+
+            val pendingCompetitors = round.competitors(roundDescription)
                     .filter { c -> resultsLeft.none { r -> r.hasTeams(c) } }
                     .toList()
 
-            allRounds.add(TournamentState(roundNo, round, results, round.filterCurrentResults(resultsLeft), pendingCompetitors))
+            allRounds.add(TournamentState(roundNo, round, results, round.filterCurrentResults(resultsLeft, roundDescription), pendingCompetitors, roundDescription))
         }
 
         return allRounds
@@ -77,6 +84,10 @@ class DefaultTournamentService @Autowired constructor(
 
         verifyHasNoDuplicates(league, tournaments)
         tournamentRepository.save(tournaments)
+
+        tournaments.onEach {
+            roundService.createSimpleNewRoundForTournament(it, it.winners, it.losers, 0)
+        }
 
         tournaments.map { initialStatusMessage(it) }
                 .onEach { initialMessage -> slackService.sendChannelMessage(league.slackChannelId, initialMessage) }
@@ -92,7 +103,7 @@ class DefaultTournamentService @Autowired constructor(
     }
 
     private fun countDuplicates(existingTournaments: Set<Tournament>, generated: Tournament) : Int {
-        return generated.competitors().map { c -> existingTournaments.count { it.competitors().contains(c) } }
+        return generated.firstRoundCompetitors().map { c -> existingTournaments.count { it.firstRoundCompetitors().contains(c) } }
                 .sum()
     }
 
@@ -107,7 +118,7 @@ class DefaultTournamentService @Autowired constructor(
 
     private fun initialStatusMessage(tournament: Tournament) : String {
         return ":trophy: `${tournament.competition.label()}`\n>>>" +
-                listedCompetitors(tournament.competitors())
+                listedCompetitors(tournament.firstRoundCompetitors())
     }
 
     private fun listedCompetitors(competitors: List<Set<LeagueTeam>>) : String {
@@ -124,5 +135,14 @@ class DefaultTournamentService @Autowired constructor(
     private fun competitorsLine(teams: Set<LeagueTeam>) : String {
         return teams.map { teamKeywordsLabel(it) }
                 .joinToString(" vs ")
+    }
+
+    private fun findRound(tournament: Tournament, roundNumber: Int) : Round {
+        val rounds = roundService.getAllRoundsForTournament(tournament)
+        return rounds.firstOrNull { it.number == roundNumber } ?: if (roundNumber == 0) {
+            roundService.createSimpleNewRoundForTournament(tournament, tournament.winners, tournament.losers, roundNumber)
+        } else {
+            roundService.createNewRoundForTournament(tournament, tournament.winners, tournament.losers, roundNumber)
+        }
     }
 }

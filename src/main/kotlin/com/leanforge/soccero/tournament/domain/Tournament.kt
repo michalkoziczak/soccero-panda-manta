@@ -2,6 +2,7 @@ package com.leanforge.soccero.tournament.domain
 
 import com.leanforge.soccero.league.domain.Competition
 import com.leanforge.soccero.result.domain.MatchResult
+import com.leanforge.soccero.round.Round
 import com.leanforge.soccero.team.domain.LeagueTeam
 import org.springframework.data.annotation.Id
 import java.util.*
@@ -14,7 +15,7 @@ data class Tournament(
         @Id val uuid : UUID = UUID.randomUUID()) {
 
 
-    fun competitors() : List<Set<LeagueTeam>> {
+    fun competitors(round: Round) : List<Set<LeagueTeam>> {
         if (winners.size == 1 && losers.size == 1) {
             return (winners + losers)
                     .windowed(2, 2, false)
@@ -22,15 +23,14 @@ data class Tournament(
                     .toList()
         }
 
-        var winningCompetitors = winners.windowed(2, 2, false)
+        return round.pairs.map{ it.toList().toSet() }
+
+    }
+
+    fun firstRoundCompetitors() : List<Set<LeagueTeam>> {
+        return winners.windowed(2, 2, false)
                 .map { it.toSet() }
                 .toList()
-
-        var losingCompetitors = losers.windowed(2, 2, false)
-                .map { it.toSet() }
-                .toList()
-
-        return winningCompetitors + losingCompetitors
     }
 
     fun nextRound(results : List<MatchResult>, competitors : List<Set<LeagueTeam>>) : Tournament {
@@ -60,8 +60,8 @@ data class Tournament(
         return Tournament(name, competition, newWinners, newLosers, uuid)
     }
 
-    fun hasAllResults(results: List<MatchResult>) : Boolean {
-        return competitors()
+    fun hasAllResults(results: List<MatchResult>, round: Round) : Boolean {
+        return competitors(round)
                 .all { c -> results.any { r -> r.hasTeams(c) } }
     }
 
@@ -74,8 +74,8 @@ data class Tournament(
         return results.count { it.loser == team }
     }
 
-    fun filterCurrentResults(results: List<MatchResult>) : List<MatchResult> {
-        return competitors()
+    fun filterCurrentResults(results: List<MatchResult>, round: Round) : List<MatchResult> {
+        return competitors(round)
                 .map { c -> results.firstOrNull { r -> r.hasTeams(c) } }
                 .filter { it != null }
                 .map { it ?: throw NullPointerException()}
@@ -86,7 +86,7 @@ data class Tournament(
         return winners.size <= 1 && (winners.size + losers.size) <= 2
     }
 
-    fun isFinished(): Boolean {
-        return competitors().isEmpty()
+    fun isFinished(round: Round): Boolean {
+        return competitors(round).isEmpty()
     }
 }
