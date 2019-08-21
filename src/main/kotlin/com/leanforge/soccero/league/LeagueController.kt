@@ -12,7 +12,9 @@ import com.leanforge.soccero.league.parser.CompetitionParser
 import org.springframework.beans.factory.annotation.Autowired
 
 @SlackController
-open class LeagueController @Autowired constructor(val slackService: SlackService, val leagueService: DefaultLeagueService) : HelpController.CommandManualProvider, HelpController.AdminCommandManualProvider {
+open class LeagueController @Autowired constructor(val slackService: SlackService,
+                                                   val leagueService: DefaultLeagueService,
+                                                   val leaguePlayerReplacerService: DefaultLeaguePlayerReplacerService) : HelpController.CommandManualProvider, HelpController.AdminCommandManualProvider {
 
 
     override fun listCommands(): Iterable<CommandManual> {
@@ -73,7 +75,13 @@ open class LeagueController @Autowired constructor(val slackService: SlackServic
                         name = "endLeague",
                         args = listOf(leagueName),
                         description = "Closes league"
+                ),
+                CommandManual(
+                        name = "replacePlayer",
+                        args = listOf(leagueName, CommandArg("oldPlayer", "(.*)", "Player to remove"), CommandArg("newPlayer", "(.*)", "Player to add")),
+                        description = "Replace player in league"
                 )
+
         )
     }
 
@@ -127,6 +135,17 @@ open class LeagueController @Autowired constructor(val slackService: SlackServic
 
             slackService.addReactions(slackMessage, "ok_hand")
         }
+    }
+
+    @SlackMessageListener(value = "replacePlayer '([^']+)' (.*) (.*)", sendTyping = true)
+    fun replacePlayer(@SlackMessageRegexGroup(1) leagueName: String, @SlackMessageRegexGroup(2) userIdToRemove: String,
+                      @SlackMessageRegexGroup(3) userIdToAdd: String) : SlackReactionResponse {
+        var playerIdToRemove = IdsExtractor.extractIds(userIdToRemove)[0]
+        var playerIdToAdd = IdsExtractor.extractIds(userIdToAdd)[0]
+
+        var result = leaguePlayerReplacerService.replacePlayer(leagueName, playerIdToRemove, playerIdToAdd)
+
+        return if (result) SlackReactionResponse("ok_hand") else SlackReactionResponse("confused")
     }
 
     @SlackThreadMessageListener("add (.*)")

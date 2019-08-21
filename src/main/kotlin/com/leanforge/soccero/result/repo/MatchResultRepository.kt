@@ -11,4 +11,5 @@ import java.util.stream.Stream
 interface MatchResultRepository : MongoRepository<MatchResult, UUID> {
     fun findAllByMatchId(matchId: UUID) : Stream<MatchResult>
     fun findAllByLeagueNameAndCompetition(leagueName: String, competition: Competition) : Stream<MatchResult>
+    fun findAllByLeagueName(leagueName: String) : Stream<MatchResult>
 }

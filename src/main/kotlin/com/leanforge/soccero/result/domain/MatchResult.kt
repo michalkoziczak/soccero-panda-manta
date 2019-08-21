@@ -18,4 +18,8 @@ data class MatchResult(
     fun hasTeams(teams: Set<LeagueTeam>) : Boolean {
         return setOf(loser, winner) == teams
     }
+
+    fun hasTeam(team: LeagueTeam) : Boolean {
+        return loser == team || winner == team
+    }
 }

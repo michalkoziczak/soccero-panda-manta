@@ -11,4 +11,8 @@ data class Round(
     val competition: Competition,
     val league: String,
     val pairs: List<Pair<LeagueTeam, LeagueTeam>>
-)
+) {
+    fun isLeagueTeamPlaing(leagueTeam: LeagueTeam) : Boolean {
+        return pairs.any { it.first == leagueTeam || it.second == leagueTeam }
+    }
+}

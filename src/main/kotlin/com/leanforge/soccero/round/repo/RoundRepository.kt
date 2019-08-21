@@ -10,5 +10,7 @@ import java.util.stream.Stream
 @Repository
 interface RoundRepository : MongoRepository<Round, UUID> {
 
+    fun findAllByLeague(league: String) : Stream<Round>
+
     fun findAllByCompetitionAndLeague(competition: Competition, league: String) : Stream<Round>
 }

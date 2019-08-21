@@ -45,6 +45,7 @@ class HelpController
 //                ":pushpin: `defineQueue competition:XvsX #channelname p4` defines queue. Bot will use `startGame` command on this channel to schedule tournament game\n" +
 //                ":pushpin: `removeQueue competition:XvsX` removes queue definition\n" +
 //                ":pushpin: `listQueues` list defined queues (competition-channel bindings)\n"
+//                ":pushpin: `replacePlayer '{leagueName}' @playerToRemove @playerToAdd` replace player in league\n"
     }
 
 

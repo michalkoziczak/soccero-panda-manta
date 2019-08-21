@@ -8,7 +8,7 @@ import java.util.*
 data class TournamentMatch(
         val leagueName: String,
         val competition: Competition,
-        val competitors: Set<LeagueTeam>,
+        var competitors: Set<LeagueTeam>,
         val slackChannelId: String,
         val slackMessageId: String,
         @Id val uuid : UUID = UUID.randomUUID()
