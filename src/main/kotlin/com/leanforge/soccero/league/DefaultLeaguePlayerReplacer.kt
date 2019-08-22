@@ -91,10 +91,14 @@ class DefaultLeaguePlayerReplacerService @Autowired constructor(
     private fun replaceInRounds(league: League, oldTeam: LeagueTeam, newTeam: LeagueTeam) {
         val rounds = roundRepository.findAllByLeague(league.name)
 
-        rounds.filter { it.isLeagueTeamPlaing(oldTeam) }
+        rounds.filter { it.isLeagueTeamPlaying(oldTeam) }
                 .map { round ->
                     val newPairs = round.pairs.map { pair ->
-                        if (pair.first == oldTeam) Pair(newTeam, pair.second) else Pair(pair.first, newTeam)
+                        when (oldTeam) {
+                            pair.first -> Pair(newTeam, pair.second)
+                            pair.second -> Pair(pair.first, newTeam)
+                            else -> pair
+                        }
                     }
                     round.copy(pairs = newPairs)
                 }
